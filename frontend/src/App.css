@@ -1,3 +1,6 @@
+/* Typography - Custom Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
+
 /* Main Layout */
 .app-container {
   display: flex;
@@ -20,6 +23,7 @@
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.5px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .app-header p {
