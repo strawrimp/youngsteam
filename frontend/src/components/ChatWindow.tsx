@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useConversationStore } from '../store';
 
 const AGENT_COLORS: Record<string, string> = {
-  Manager: '#4E7EBE',
-  Developer: '#4A9B6F',
-  Designer: '#7C6BA8',
-  Researcher: '#D4A055',
+  manager: '#0066CC',
+  developer: '#00AA44',
+  designer: '#8B5CF6',
+  researcher: '#F59E0B',
 };
 
 const AGENT_COLORS_TAILWIND: Record<string, string> = {
@@ -111,6 +111,13 @@ export const ChatWindow: React.FC = () => {
                     : message.type === 'error'
                     ? 'message-system'
                     : 'message-agent'
+                }
+                style={
+                  message.senderType !== 'user' && message.type !== 'error'
+                    ? {
+                        borderLeftColor: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'],
+                      }
+                    : undefined
                 }
               >
                 {message.senderType !== 'user' && (

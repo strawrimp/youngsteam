@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useConversationStore } from '../store';
 import { api } from '../api';
 
+const AGENT_COLORS: Record<string, string> = {
+  manager: '#0066CC',
+  developer: '#00AA44',
+  designer: '#8B5CF6',
+  researcher: '#F59E0B',
+};
+
 export const VotingPanel: React.FC = () => {
   const { votingResults, modelStats, setModelStats } = useConversationStore();
   const [activeTab, setActiveTab] = useState<'voting' | 'stats'>('voting');
@@ -82,7 +89,14 @@ export const VotingPanel: React.FC = () => {
                   <h4 className="text-sm font-semibold text-neutral-900 mb-md">투표 결과</h4>
                   <div className="space-y-md">
                     {Object.entries(votingResults.votes).map(([agentId, vote]) => (
-                      <div key={agentId} className="border border-neutral-300 rounded-sm p-md">
+                      <div
+                        key={agentId}
+                        className="border border-neutral-300 rounded-sm p-md"
+                        style={{
+                          borderLeftWidth: '4px',
+                          borderLeftColor: AGENT_COLORS[vote.agentName?.toLowerCase() || 'manager'],
+                        }}
+                      >
                         <div className="flex items-center justify-between mb-md">
                           <span className="text-sm font-semibold text-neutral-900">{vote.agentName}</span>
                           <span className="px-sm py-xs bg-neutral-100 rounded-xs text-xs font-medium text-neutral-700">
