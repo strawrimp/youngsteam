@@ -80,7 +80,15 @@
       "Bash(curl -I http://localhost:3000/)",
       "Bash(curl -v http://localhost:3000/)",
       "Bash(pkill vite:*)",
-      "Bash(ls -la src/components/*.tsx src/*.ts*)"
+      "Bash(ls -la src/components/*.tsx src/*.ts*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(xargs -I {} lsof -p {})",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(pkill -f \"vite\\\\|bun run dev\")",
+      "Bash(pkill -9 vite)",
+      "Bash(pkill -9 'bun run')",
+      "Bash(kill -9 79014)"
     ]
   }
 }

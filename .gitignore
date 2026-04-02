@@ -34,3 +34,4 @@ frontend/npm-debug.log
 # Database
 *.db
 *.sqlite
+.gstack/

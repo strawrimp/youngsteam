@@ -355,3 +355,393 @@ INFO:     ::1:61128 - "GET /api/agents HTTP/1.1" 200 OK
 INFO:sqlalchemy.engine.Engine:ROLLBACK
 INFO:     ::1:62491 - "GET /health HTTP/1.1" 200 OK
 INFO:     ::1:62498 - "GET /health HTTP/1.1" 200 OK
+2026-04-02 20:36:01,720 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:36:01,720 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:36:01,720 INFO sqlalchemy.engine.Engine [cached since 1.375e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.375e+04s ago] ()
+INFO:     ::1:62618 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:36:01,721 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62618 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 62619) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62619)
+INFO:     connection open
+INFO:     ::1:62620 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:36:01,724 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:36:01,724 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:36:01,724 INFO sqlalchemy.engine.Engine [cached since 1.375e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.375e+04s ago] ()
+INFO:     ::1:62618 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:36:01,725 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:     ('::1', 62621) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62621)
+INFO:     connection open
+INFO:     ::1:62656 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62663 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62692 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:37:51,057 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:37:51,057 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:37:51,057 INFO sqlalchemy.engine.Engine [cached since 1.386e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.386e+04s ago] ()
+INFO:     ::1:62703 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:37:51,058 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+2026-04-02 20:37:53,685 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:37:53,685 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:37:53,685 INFO sqlalchemy.engine.Engine [cached since 1.386e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.386e+04s ago] ()
+INFO:     ::1:62703 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:37:53,686 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62704 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:38:05,180 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:38:05,180 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:38:05,180 INFO sqlalchemy.engine.Engine [cached since 1.388e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.388e+04s ago] ()
+INFO:     ::1:62704 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:38:05,180 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62732 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62739 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62763 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62772 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62792 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62805 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62825 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62838 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62866 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:42:49,946 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:42:49,946 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:42:49,947 INFO sqlalchemy.engine.Engine [cached since 1.416e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.416e+04s ago] ()
+INFO:     ::1:62877 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:42:49,949 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+2026-04-02 20:42:58,127 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:42:58,127 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:42:58,128 INFO sqlalchemy.engine.Engine [cached since 1.417e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.417e+04s ago] ()
+INFO:     ::1:62882 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:42:58,128 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62882 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62905 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:43:52,855 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:52,855 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:52,855 INFO sqlalchemy.engine.Engine [cached since 1.422e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.422e+04s ago] ()
+INFO:     ::1:62917 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     ::1:62918 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 62919) - "WebSocket /ws" [accepted]
+2026-04-02 20:43:52,858 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62919)
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     connection closed
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1006
+INFO:__main__:WebSocket client disconnected
+INFO:     ::1:62920 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:43:52,860 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:52,861 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:52,861 INFO sqlalchemy.engine.Engine [cached since 1.422e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.422e+04s ago] ()
+INFO:     ::1:62917 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:43:52,862 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ('::1', 62921) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62921)
+INFO:     connection open
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:     connection closed
+2026-04-02 20:43:52,930 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:52,930 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:52,930 INFO sqlalchemy.engine.Engine [cached since 1.422e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.422e+04s ago] ()
+INFO:     ::1:62917 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     ::1:62920 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:43:52,932 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62917 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 62928) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62928)
+INFO:     connection open
+2026-04-02 20:43:52,935 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:52,935 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:52,935 INFO sqlalchemy.engine.Engine [cached since 1.422e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.422e+04s ago] ()
+INFO:     ::1:62918 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:43:52,936 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:     ('::1', 62929) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62929)
+INFO:     connection open
+2026-04-02 20:43:56,494 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:56,494 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:56,494 INFO sqlalchemy.engine.Engine [cached since 1.423e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.423e+04s ago] ()
+INFO:     ::1:62918 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     ::1:62917 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:43:56,497 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62918 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 62931) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62931)
+INFO:     connection closed
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1006
+INFO:__main__:WebSocket client disconnected
+2026-04-02 20:43:56,499 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:56,499 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:56,499 INFO sqlalchemy.engine.Engine [cached since 1.423e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.423e+04s ago] ()
+INFO:     ::1:62920 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:43:56,500 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ('::1', 62932) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62932)
+INFO:     connection open
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:     connection closed
+2026-04-02 20:43:56,571 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:56,571 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:56,571 INFO sqlalchemy.engine.Engine [cached since 1.423e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.423e+04s ago] ()
+INFO:     ::1:62920 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     ::1:62918 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:43:56,573 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62917 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 62934) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62934)
+INFO:     connection open
+2026-04-02 20:43:56,574 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:43:56,574 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:43:56,574 INFO sqlalchemy.engine.Engine [cached since 1.423e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.423e+04s ago] ()
+INFO:     ::1:62920 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:43:56,575 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:     ('::1', 62935) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=62935)
+INFO:     connection open
+INFO:     ::1:62956 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62968 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:62990 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63004 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63023 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63036 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63059 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63074 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63099 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63112 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63134 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63141 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63169 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63179 - "GET /api/stats/models HTTP/1.1" 200 OK
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+2026-04-02 20:51:14,937 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:51:14,937 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:51:14,937 INFO sqlalchemy.engine.Engine [cached since 1.467e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.467e+04s ago] ()
+INFO:     ::1:63206 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:51:14,938 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:63206 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 63207) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=63207)
+INFO:     ::1:63206 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     connection closed
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1006
+INFO:__main__:WebSocket client disconnected
+2026-04-02 20:51:14,942 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:51:14,942 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:51:14,942 INFO sqlalchemy.engine.Engine [cached since 1.467e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.467e+04s ago] ()
+INFO:     ::1:63208 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:51:14,943 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ('::1', 63210) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=63210)
+INFO:     connection open
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+2026-04-02 20:51:15,004 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:51:15,004 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:51:15,004 INFO sqlalchemy.engine.Engine [cached since 1.467e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.467e+04s ago] ()
+INFO:     ::1:63208 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     ::1:63206 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:51:15,006 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:63208 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 63212) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=63212)
+INFO:     connection open
+2026-04-02 20:51:15,008 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:51:15,008 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:51:15,008 INFO sqlalchemy.engine.Engine [cached since 1.467e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.467e+04s ago] ()
+INFO:     ::1:63209 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:51:15,008 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:     ('::1', 63213) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=63213)
+INFO:     connection open
+INFO:     ::1:63233 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63254 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63272 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63287 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63305 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63322 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63345 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63358 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63378 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63387 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63410 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63422 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63447 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63457 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63480 - "GET /api/stats/models HTTP/1.1" 200 OK
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1001
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+2026-04-02 20:58:53,338 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:58:53,338 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:58:53,338 INFO sqlalchemy.engine.Engine [cached since 1.512e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.512e+04s ago] ()
+INFO:     ::1:63499 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:58:53,340 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:63500 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ('::1', 63501) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=63501)
+INFO:     connection closed
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1006
+INFO:__main__:WebSocket client disconnected
+2026-04-02 20:58:53,343 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:58:53,343 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:58:53,343 INFO sqlalchemy.engine.Engine [cached since 1.512e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.512e+04s ago] ()
+INFO:     ::1:63499 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     ::1:63502 - "GET /api/stats/models HTTP/1.1" 200 OK
+2026-04-02 20:58:53,344 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ('::1', 63503) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=63503)
+INFO:     connection open
+INFO:     ::1:63571 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63644 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63757 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63839 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63919 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:63996 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:64087 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:64161 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:64239 - "GET /api/stats/models HTTP/1.1" 200 OK
+INFO:     ::1:64310 - "GET /api/stats/models HTTP/1.1" 200 OK
