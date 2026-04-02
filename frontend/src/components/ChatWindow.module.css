@@ -177,14 +177,23 @@
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .sendButton:hover:not(:disabled) {
   background-color: #0052a3;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  transform: translateY(-1px);
+}
+
+.sendButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 102, 204, 0.2);
 }
 
 .sendButton:disabled {
-  background-color: #ccc;
+  background-color: #ddd;
   cursor: not-allowed;
+  color: #999;
 }

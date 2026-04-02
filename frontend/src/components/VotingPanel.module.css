@@ -25,6 +25,7 @@
   color: #666;
   transition: all 0.2s ease;
   border-bottom: 2px solid transparent;
+  font-family: 'Poppins', sans-serif;
 }
 
 .tab:hover {
@@ -32,9 +33,15 @@
   color: #333;
 }
 
+.tab:focus-visible {
+  outline: none;
+  background: #eeeeee;
+}
+
 .tab.active {
   color: #0066cc;
   border-bottom-color: #0066cc;
+  font-weight: 600;
 }
 
 .tabContent {
