@@ -90,7 +90,16 @@
       "Bash(pkill -9 'bun run')",
       "Bash(kill -9 79014)",
       "Bash(grep -r uvicorn /Users/maegmini/my-ai-company/backend/ --include=*.py)",
-      "Bash(do echo:*)"
+      "Bash(do echo:*)",
+      "Skill(design-consultation)",
+      "Skill(design-consultation:*)",
+      "Bash(open /tmp/ai-company-design-preview.html)",
+      "Bash(bun add:*)",
+      "Bash(/Users/maegmini/.bun/bin/bun add:*)",
+      "Bash(/Users/maegmini/.bun/bin/bun x:*)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Skill(design-review)",
+      "Skill(design-review:*)"
     ]
   }
 }

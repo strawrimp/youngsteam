@@ -5,6 +5,7 @@
       "name": "frontend-dev",
       "runtimeExecutable": "/Users/maegmini/.bun/bin/bun",
       "runtimeArgs": ["run", "dev"],
+      "cwd": "frontend",
       "port": 5173
     }
   ]
