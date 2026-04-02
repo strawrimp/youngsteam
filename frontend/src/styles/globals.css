@@ -86,11 +86,11 @@
   }
 
   .app-header h1 {
-    @apply text-2xl font-semibold m-0;
+    @apply text-3xl font-bold m-0 leading-tight;
   }
 
   .app-header p {
-    @apply text-sm opacity-90 font-normal mt-xs m-0;
+    @apply text-base opacity-95 font-normal mt-md m-0;
   }
 
   .app-main {
@@ -98,19 +98,22 @@
     grid-template-columns: 280px 1fr 300px;
     flex: 1;
     min-height: 0;
-    gap: 0;
+    gap: 1px;
+    background-color: #e2e8f0;
   }
 
   .app-sidebar-left {
-    @apply h-full min-w-0 overflow-hidden;
+    @apply h-full min-w-0 overflow-y-auto bg-white border-r border-neutral-200;
+    scrollbar-width: thin;
   }
 
   .app-center {
-    @apply h-full min-w-0 overflow-hidden;
+    @apply h-full min-w-0 overflow-hidden bg-white;
   }
 
   .app-sidebar-right {
-    @apply h-full min-w-0 overflow-hidden;
+    @apply h-full min-w-0 overflow-y-auto bg-white border-l border-neutral-200;
+    scrollbar-width: thin;
   }
 
   @media (max-width: 1200px) {
@@ -268,12 +271,12 @@
 
   /* Agent card */
   .agent-card {
-    @apply rounded-md p-md text-white shadow-sm border border-opacity-20 transition-all duration-150;
+    @apply rounded-md p-lg text-white shadow-md border-2 border-opacity-30 transition-all duration-150 mx-sm my-sm;
   }
 
   .agent-card:hover {
-    @apply shadow-md;
-    filter: brightness(0.95);
+    @apply shadow-lg;
+    filter: brightness(1.05);
   }
 
   .agent-card-focus {
