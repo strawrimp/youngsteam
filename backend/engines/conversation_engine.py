@@ -60,9 +60,9 @@ class ConversationEngine:
         if not user_message.strip():
             return {"error": "Empty message"}
 
-        # Default to all agents if not specified
+        # Determine which agents to consult
         if agent_ids is None:
-            agent_ids = list(self.agents.keys())
+            agent_ids = self._determine_agents(user_message)
 
         logger.info(f"Processing message in conversation {conversation_id}")
         logger.info(f"Consulting agents: {agent_ids}")
@@ -75,9 +75,53 @@ class ConversationEngine:
             "user_message": user_message,
             "timestamp": datetime.now().isoformat(),
             "agent_responses": agent_responses,
+            "consulted_agents": agent_ids,
         }
 
         return result
+
+    def _determine_agents(self, user_message: str) -> List[str]:
+        """
+        Determine which agents should respond based on the message.
+        
+        If no specific agent is mentioned, only Manager responds.
+        
+        Args:
+            user_message: User's input message
+            
+        Returns:
+            List of agent IDs to consult
+        """
+        message_lower = user_message.lower()
+        
+        # Map keywords to agent roles
+        agent_keywords = {
+            "developer": ["개발자", "developer", "dev", "코드", "code", "기술", "tech"],
+            "designer": ["디자이너", "designer", "design", "디자인", "ui", "ux"],
+            "researcher": ["리서처", "researcher", "연구", "research", "데이터", "data", "분석"],
+        }
+        
+        # Check if Manager is explicitly mentioned
+        manager_keywords = ["매니저", "manager", "ceo", "ceo", "관리자", "리더", "leader"]
+        manager_mentioned = any(kw in message_lower for kw in manager_keywords)
+        
+        # Check for other specific agent mentions
+        mentioned_agents = []
+        for role, keywords in agent_keywords.items():
+            if any(kw in message_lower for kw in keywords):
+                # Find agent ID by role
+                for agent_id, agent in self.agents.items():
+                    if agent.role == role:
+                        mentioned_agents.append(agent_id)
+                        break
+        
+        # If no specific agent mentioned, use only Manager
+        if not mentioned_agents:
+            for agent_id, agent in self.agents.items():
+                if agent.role == "manager":
+                    return [agent_id]
+        
+        return mentioned_agents if mentioned_agents else list(self.agents.keys())
 
     async def _get_agent_responses(
         self,
@@ -94,17 +138,24 @@ class ConversationEngine:
         Returns:
             Dict mapping agent IDs to their responses
         """
+        logger.info(f"_get_agent_responses called with {len(agent_ids)} agents")
+        
         tasks = []
         for agent_id in agent_ids:
             if agent_id not in self.agents:
                 logger.warning(f"Agent not found: {agent_id}")
                 continue
 
+            logger.info(f"Creating task for agent {agent_id}")
             task = self._get_agent_response_with_limit(agent_id, message)
             tasks.append(task)
 
+        logger.info(f"Starting asyncio.gather for {len(tasks)} tasks")
+        
         # Run all tasks concurrently
         responses_list = await asyncio.gather(*tasks, return_exceptions=True)
+
+        logger.info(f"asyncio.gather completed")
 
         # Map responses back to agent IDs
         responses = {}
@@ -115,6 +166,7 @@ class ConversationEngine:
             else:
                 responses[agent_id] = response
 
+        logger.info(f"Returning {len(responses)} responses")
         return responses
 
     async def _get_agent_response_with_limit(self, agent_id: str, message: str) -> str:
@@ -130,15 +182,17 @@ class ConversationEngine:
         """
         async with self.semaphore:
             agent = self.agents[agent_id]
-            logger.debug(f"Getting response from {agent.name}")
+            logger.info(f"Getting response from {agent.name}")
 
             try:
                 response = await agent.respond(message)
-                logger.debug(f"{agent.name} responded: {response[:100]}...")
+                logger.info(f"{agent.name} responded: {response[:100]}...")
                 return response
             except Exception as e:
                 logger.error(f"Error from {agent.name}: {e}")
-                raise
+                import traceback
+                logger.error(traceback.format_exc())
+                return f"[Error] {str(e)}"
 
     async def start_voting(
         self,

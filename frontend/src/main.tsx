@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import './App.css'
@@ -8,7 +8,6 @@ import { AgentPanel } from './components/AgentPanel'
 import { VotingPanel } from './components/VotingPanel'
 import { useConversationStore } from './store'
 import { Message as MessageType, AgentResponse } from './types'
-import { useEffect } from 'react'
 
 const App: React.FC = () => {
   const {
@@ -17,7 +16,11 @@ const App: React.FC = () => {
     addMessage,
     addAgentResponse,
     setProcessingStatus,
+    setLoading,
   } = useConversationStore();
+
+  const [wsInstance, setWsInstance] = useState<WebSocket | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     const conversationId = `conv-${Date.now()}`;
@@ -28,6 +31,8 @@ const App: React.FC = () => {
     const wsHost = window.location.hostname;
     const wsUrl = `${wsProtocol}//${wsHost}:8000/ws`;
     const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+    setWsInstance(ws);
 
     ws.onopen = () => {
       console.log('WebSocket connected');
@@ -41,7 +46,13 @@ const App: React.FC = () => {
 
         switch (data.type) {
           case 'status':
+            console.log('Status update:', data.status, data.message);
             setProcessingStatus(data.message || '');
+            if (data.status === 'complete') {
+              console.log('Complete received, setting loading to false');
+              setLoading(false);
+              setProcessingStatus('');
+            }
             break;
 
           case 'agent_response':
@@ -99,7 +110,7 @@ const App: React.FC = () => {
     return () => {
       ws.close();
     };
-  }, [setConnected, setConversationId, addMessage, addAgentResponse, setProcessingStatus]);
+  }, []);
 
   return (
     <div className="app-container">
@@ -114,7 +125,7 @@ const App: React.FC = () => {
         </aside>
 
         <main className="app-center">
-          <ChatWindow />
+          <ChatWindow wsInstance={wsInstance} />
         </main>
 
         <aside className="app-sidebar-right">

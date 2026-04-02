@@ -23,7 +23,7 @@ from services.glm_service import GLMService
 from services.deepseek_service import DeepSeekService
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -125,12 +125,14 @@ async def websocket_endpoint(websocket: WebSocket):
     conversation_id = str(__import__('uuid').uuid4())
     engine = app.state.conversation_engine
     memory = app.state.memory_service
+    
+    logger.info(f"Engine has {len(engine.agents)} agents")
 
     try:
         while True:
             # Receive text message
             data = await websocket.receive_text()
-            logger.debug(f"WebSocket received: {data}")
+            logger.info(f"WebSocket received: {data}")
 
             try:
                 message_data = json.loads(data)
@@ -150,9 +152,17 @@ async def websocket_endpoint(websocket: WebSocket):
                 "message": "에이전트들이 의견을 수집 중입니다...",
             })
 
+            logger.info(f"Calling engine.process_message with: {user_message}")
+
             # Process message through agents
             try:
+                logger.info("About to call engine.process_message")
                 result = await engine.process_message(conversation_id, user_message)
+                logger.info(f"Engine returned with {len(result.get('agent_responses', {}))} responses")
+
+                logger.info(f"Engine returned result keys: {list(result.keys())}")
+                if result.get('agent_responses'):
+                    logger.info(f"Agent response keys: {list(result.get('agent_responses', {}).keys())}")
 
                 # Send agent responses
                 for agent_id, response in result.get("agent_responses", {}).items():
@@ -199,12 +209,31 @@ async def websocket_endpoint(websocket: WebSocket):
 async def send_message(request_data: dict = None, db: Session = Depends(get_db)):
     """Send a message to agents."""
     try:
-        return {
-            "status": "received",
-            "message": request_data or {},
-            "note": "Phase 1: Echo only"
-        }
+        content = request_data.get("content", "") if request_data else ""
+        
+        engine = app.state.conversation_engine
+        logger.info(f"Testing with {len(engine.agents)} agents")
+        
+        agent_ids = list(engine.agents.keys())
+        if agent_ids:
+            agent_id = agent_ids[0]
+            agent = engine.agents[agent_id]
+            logger.info(f"Calling agent {agent.name} directly")
+            
+            response = await agent.respond(content)
+            logger.info(f"Agent responded: {response[:100]}...")
+            
+            return {
+                "status": "ok",
+                "agent": agent.name,
+                "response": response
+            }
+        
+        return {"status": "error", "message": "No agents registered"}
     except Exception as e:
+        logger.error(f"Error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         return {"status": "error", "message": str(e)}
 
 

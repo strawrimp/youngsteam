@@ -8,16 +8,11 @@ const AGENT_COLORS: Record<string, string> = {
   researcher: '#F59E0B',
 };
 
-const AGENT_COLORS_TAILWIND: Record<string, string> = {
-  Manager: 'text-agent-manager',
-  Developer: 'text-agent-developer',
-  Designer: 'text-agent-designer',
-  Researcher: 'text-agent-researcher',
-};
+interface ChatWindowProps {
+  wsInstance?: WebSocket | null;
+}
 
-let wsInstance: WebSocket | null = null;
-
-export const ChatWindow: React.FC = () => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ wsInstance: wsFromProps }) => {
   const {
     messages,
     isConnected,
@@ -26,9 +21,26 @@ export const ChatWindow: React.FC = () => {
     addMessage,
     conversationId,
     setLoading,
+    wsInstance: wsFromStore,
+    isSending,
+    setIsSending,
   } = useConversationStore();
+
+  const wsInstance = wsFromProps !== undefined ? wsFromProps : wsFromStore;
+  const wsRef = useRef<WebSocket | null>(wsInstance);
+
+  useEffect(() => {
+    wsRef.current = wsInstance;
+  }, [wsInstance]);
+
+  useEffect(() => {
+    if (!processingStatus && isLoading) {
+      setIsSending(false);
+      setLoading(false);
+    }
+  }, [processingStatus, isLoading, setIsSending, setLoading]);
+
   const [input, setInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -45,7 +57,6 @@ export const ChatWindow: React.FC = () => {
     setIsSending(true);
     setLoading(true);
 
-    // Add user message to store
     const userMessage = {
       id: `msg-${Date.now()}`,
       conversationId,
@@ -59,16 +70,22 @@ export const ChatWindow: React.FC = () => {
     const messageText = input;
     setInput('');
 
-    // Send to backend via WebSocket
+    const ws = wsRef.current;
+    console.log('Sending message, WebSocket readyState:', ws?.readyState);
     try {
-      if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
-        wsInstance.send(JSON.stringify({ content: messageText }));
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('Sending to WebSocket:', messageText);
+        ws.send(JSON.stringify({ content: messageText }));
+      } else {
+        console.error('WebSocket not open, state:', ws?.readyState);
+        setIsSending(false);
+        setLoading(false);
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      setIsSending(false);
+      setLoading(false);
     }
-
-    setIsSending(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

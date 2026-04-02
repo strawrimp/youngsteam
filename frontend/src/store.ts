@@ -8,6 +8,10 @@ interface ConversationStore {
   isConnected: boolean;
   isLoading: boolean;
   processingStatus: string;
+  isSending: boolean;
+
+  // WebSocket reference
+  wsInstance: WebSocket | null;
 
   // Agent state
   agents: Agent[];
@@ -27,6 +31,8 @@ interface ConversationStore {
   setConnected: (connected: boolean) => void;
   setLoading: (loading: boolean) => void;
   setProcessingStatus: (status: string) => void;
+  setWsInstance: (ws: WebSocket | null) => void;
+  setIsSending: (sending: boolean) => void;
 
   setAgents: (agents: Agent[]) => void;
   addAgentResponse: (agentId: string, response: AgentResponse) => void;
@@ -45,6 +51,9 @@ export const useConversationStore = create<ConversationStore>((set) => ({
   isConnected: false,
   isLoading: false,
   processingStatus: '',
+  isSending: false,
+
+  wsInstance: null,
 
   agents: [],
   agentResponses: {},
@@ -64,6 +73,8 @@ export const useConversationStore = create<ConversationStore>((set) => ({
   setConnected: (connected: boolean) => set({ isConnected: connected }),
   setLoading: (loading: boolean) => set({ isLoading: loading }),
   setProcessingStatus: (status: string) => set({ processingStatus: status }),
+  setWsInstance: (ws: WebSocket | null) => set({ wsInstance: ws }),
+  setIsSending: (sending: boolean) => set({ isSending: sending }),
 
   setAgents: (agents: Agent[]) => set({ agents }),
   addAgentResponse: (agentId: string, response: AgentResponse) =>
