@@ -1,0 +1,103 @@
+DEBUG:asyncio:Using selector: KqueueSelector
+INFO:     Started server process [65951]
+INFO:     Waiting for application startup.
+INFO:__main__:Starting up AI Virtual Company backend
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("agents")
+INFO:sqlalchemy.engine.Engine:PRAGMA main.table_info("agents")
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("conversations")
+INFO:sqlalchemy.engine.Engine:PRAGMA main.table_info("conversations")
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("conversations")
+INFO:sqlalchemy.engine.Engine:PRAGMA temp.table_info("conversations")
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("messages")
+INFO:sqlalchemy.engine.Engine:PRAGMA main.table_info("messages")
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("messages")
+INFO:sqlalchemy.engine.Engine:PRAGMA temp.table_info("messages")
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine 
+CREATE TABLE conversations (
+	id VARCHAR(36) NOT NULL, 
+	title VARCHAR(255), 
+	is_voting BOOLEAN, 
+	started_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+	ended_at DATETIME, 
+	PRIMARY KEY (id)
+)
+
+
+INFO:sqlalchemy.engine.Engine:
+CREATE TABLE conversations (
+	id VARCHAR(36) NOT NULL, 
+	title VARCHAR(255), 
+	is_voting BOOLEAN, 
+	started_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+	ended_at DATETIME, 
+	PRIMARY KEY (id)
+)
+
+
+2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [no key 0.00003s] ()
+INFO:sqlalchemy.engine.Engine:[no key 0.00003s] ()
+2026-04-02 14:02:26,696 INFO sqlalchemy.engine.Engine 
+CREATE TABLE messages (
+	id VARCHAR(36) NOT NULL, 
+	conversation_id VARCHAR(36) NOT NULL, 
+	agent_id VARCHAR(36), 
+	sender_type VARCHAR(20) NOT NULL, 
+	content VARCHAR NOT NULL, 
+	message_type VARCHAR(20), 
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(conversation_id) REFERENCES conversations (id) ON DELETE CASCADE, 
+	FOREIGN KEY(agent_id) REFERENCES agents (id) ON DELETE SET NULL
+)
+
+
+INFO:sqlalchemy.engine.Engine:
+CREATE TABLE messages (
+	id VARCHAR(36) NOT NULL, 
+	conversation_id VARCHAR(36) NOT NULL, 
+	agent_id VARCHAR(36), 
+	sender_type VARCHAR(20) NOT NULL, 
+	content VARCHAR NOT NULL, 
+	message_type VARCHAR(20), 
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(conversation_id) REFERENCES conversations (id) ON DELETE CASCADE, 
+	FOREIGN KEY(agent_id) REFERENCES agents (id) ON DELETE SET NULL
+)
+
+
+2026-04-02 14:02:26,696 INFO sqlalchemy.engine.Engine [no key 0.00003s] ()
+INFO:sqlalchemy.engine.Engine:[no key 0.00003s] ()
+2026-04-02 14:02:26,696 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:__main__:Database initialized
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:64755 - "GET /health HTTP/1.1" 200 OK
+INFO:     ::1:64755 - "GET /health HTTP/1.1" 200 OK
+2026-04-02 14:03:00,235 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 14:03:00,238 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 14:03:00,238 INFO sqlalchemy.engine.Engine [generated in 0.00025s] ()
+INFO:sqlalchemy.engine.Engine:[generated in 0.00025s] ()
+INFO:     ::1:64755 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 14:03:00,240 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     ::1:64758 - "GET /ws HTTP/1.1" 404 Not Found

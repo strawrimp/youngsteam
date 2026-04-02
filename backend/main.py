@@ -59,35 +59,50 @@ async def health_check():
 
 # WebSocket endpoint for real-time chat
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
+async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time communication."""
     await websocket.accept()
     logger.info(f"WebSocket client connected: {websocket.client}")
 
     try:
         while True:
+            # Receive text message
             data = await websocket.receive_text()
-            message_data = json.loads(data)
-            logger.debug(f"Received: {message_data}")
+            logger.debug(f"WebSocket received: {data}")
+
+            try:
+                message_data = json.loads(data)
+            except json.JSONDecodeError:
+                message_data = {"content": data}
 
             # Echo test for Phase 1
             response = {
                 "type": "echo",
                 "content": f"Echo: {message_data.get('content', 'no content')}",
+                "timestamp": str(__import__('datetime').datetime.now()),
             }
+
             await websocket.send_json(response)
+            logger.debug(f"WebSocket sent: {response}")
 
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {type(e).__name__}: {e}")
     finally:
-        logger.info(f"WebSocket client disconnected: {websocket.client}")
+        logger.info(f"WebSocket client disconnected")
 
 
 # REST API endpoints for chat
 @app.post("/api/chat/message")
-async def send_message(message: dict, db: Session = Depends(get_db)):
+async def send_message(request_data: dict = None, db: Session = Depends(get_db)):
     """Send a message to agents."""
-    return {"status": "received", "message": message}
+    try:
+        return {
+            "status": "received",
+            "message": request_data or {},
+            "note": "Phase 1: Echo only"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # REST API endpoints for agents

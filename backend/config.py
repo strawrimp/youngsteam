@@ -5,8 +5,8 @@ from typing import Optional
 class Settings(BaseSettings):
     """Application configuration from environment variables."""
 
-    # Database
-    database_url: str = "postgresql://localhost/ai_company"
+    # Database (SQLite for development, PostgreSQL for production)
+    database_url: str = "sqlite:///./ai_company.db"
 
     # GLM API
     glm_api_key: str = ""

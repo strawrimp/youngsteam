@@ -3,7 +3,18 @@
     "allow": [
       "Bash(git init:*)",
       "Bash(mkdir -p backend frontend/src)",
-      "Bash(mkdir -p models schemas agents engines services routes utils scripts)"
+      "Bash(mkdir -p models schemas agents engines services routes utils scripts)",
+      "Bash(python -m venv venv)",
+      "Bash(source venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(python3 -m venv venv)",
+      "Bash(python scripts/init_agents.py)",
+      "Bash(brew services:*)",
+      "Bash(psql -l)",
+      "Bash(postgres --version)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"Phase 1: Complete backend and WebSocket implementation:*)"
     ]
   }
 }

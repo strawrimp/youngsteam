@@ -70,7 +70,7 @@ def main():
         # Create agents
         for agent_data in AGENTS:
             agent = Agent(
-                id=uuid.uuid4(),
+                id=str(uuid.uuid4()),
                 **agent_data,
             )
             db.add(agent)
