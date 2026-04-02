@@ -40,7 +40,7 @@ export const AgentPanel: React.FC = () => {
       <h3 className={styles.title}>에이전트 팀</h3>
       <div className={styles.agentsList}>
         {agents.length === 0 ? (
-          <div className={styles.empty}>에이전트 로딩 중...</div>
+          <div className={styles.empty}>에이전트 팀을 준비 중입니다.</div>
         ) : (
           agents.map((agent) => {
             const response = agentResponses[agent.id];
