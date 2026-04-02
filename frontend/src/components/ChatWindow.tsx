@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useConversationStore } from '../store';
 
 const AGENT_COLORS: Record<string, string> = {
-  manager: '#0066CC',
-  developer: '#00AA44',
-  designer: '#8B5CF6',
-  researcher: '#F59E0B',
+  manager: '#4E7EBE',
+  developer: '#4A9B6F',
+  designer: '#7C6BA8',
+  researcher: '#D4A055',
 };
 
 interface ChatWindowProps {
@@ -129,22 +129,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ wsInstance: wsFromProps 
                     ? 'message-system'
                     : 'message-agent'
                 }
-                style={
-                  message.senderType !== 'user' && message.type !== 'error'
-                    ? {
-                        borderLeftColor: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'],
-                      }
-                    : undefined
-                }
               >
                 {message.senderType !== 'user' && (
                   <div className="flex items-center justify-between mb-md">
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'] }}
-                    >
-                      {message.agentName}
-                    </span>
+                    <div className="flex items-center gap-sm">
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'] }}
+                      />
+                      <span
+                        className="text-xs font-semibold"
+                        style={{ color: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'] }}
+                      >
+                        {message.agentName}
+                      </span>
+                    </div>
                     <span className="text-caption text-neutral-600">
                       {message.timestamp.toLocaleTimeString('ko-KR', {
                         hour: '2-digit',
@@ -153,7 +152,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ wsInstance: wsFromProps 
                     </span>
                   </div>
                 )}
-                <div className="text-base leading-normal">{message.content}</div>
+                <div className="text-base leading-relaxed text-neutral-800">{message.content}</div>
                 {message.senderType === 'user' && (
                   <span className="text-caption text-white opacity-70 mt-xs block">
                     {message.timestamp.toLocaleTimeString('ko-KR', {

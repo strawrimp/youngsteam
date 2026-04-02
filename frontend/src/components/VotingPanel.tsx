@@ -3,10 +3,10 @@ import { useConversationStore } from '../store';
 import { api } from '../api';
 
 const AGENT_COLORS: Record<string, string> = {
-  manager: '#0066CC',
-  developer: '#00AA44',
-  designer: '#8B5CF6',
-  researcher: '#F59E0B',
+  manager: '#4E7EBE',
+  developer: '#4A9B6F',
+  designer: '#7C6BA8',
+  researcher: '#D4A055',
 };
 
 export const VotingPanel: React.FC = () => {
@@ -77,7 +77,7 @@ export const VotingPanel: React.FC = () => {
                   <h4 className="text-sm font-semibold text-neutral-900 mb-md">선택지</h4>
                   <div className="space-y-sm">
                     {votingResults.candidates.map((candidate, idx) => (
-                      <div key={idx} className="px-md py-sm bg-neutral-50 rounded-sm text-sm text-neutral-700">
+                      <div key={idx} className="px-md py-sm bg-neutral-50 rounded-md text-sm text-neutral-700 border border-neutral-200">
                         {idx + 1}. {candidate}
                       </div>
                     ))}
@@ -91,11 +91,7 @@ export const VotingPanel: React.FC = () => {
                     {Object.entries(votingResults.votes).map(([agentId, vote]) => (
                       <div
                         key={agentId}
-                        className="border border-neutral-300 rounded-sm p-md"
-                        style={{
-                          borderLeftWidth: '4px',
-                          borderLeftColor: AGENT_COLORS[vote.agentName?.toLowerCase() || 'manager'],
-                        }}
+                        className="border border-neutral-200 rounded-md p-md transition-all duration-200 hover:shadow-md hover:bg-neutral-50"
                       >
                         <div className="flex items-center justify-between mb-md">
                           <span className="text-sm font-semibold text-neutral-900">{vote.agentName}</span>

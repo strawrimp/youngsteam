@@ -4,10 +4,10 @@ import { api } from '../api';
 import { Agent } from '../types';
 
 const AGENT_COLORS: Record<string, string> = {
-  manager: '#0066CC',
-  developer: '#00AA44',
-  designer: '#8B5CF6',
-  researcher: '#F59E0B',
+  manager: '#4E7EBE',
+  developer: '#4A9B6F',
+  designer: '#7C6BA8',
+  researcher: '#D4A055',
 };
 
 const AGENT_LABELS: Record<string, string> = {
@@ -55,11 +55,7 @@ export const AgentPanel: React.FC = () => {
             return (
               <div
                 key={agent.id}
-                className="rounded-sm border border-neutral-300 bg-white p-sm transition-all hover:shadow-sm"
-                style={{
-                  borderLeftWidth: '4px',
-                  borderLeftColor: AGENT_COLORS[agent.role],
-                }}
+                className="rounded-md border border-neutral-200 bg-white p-md transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
               >
                 {/* Agent header */}
                 <div className="flex items-start gap-md mb-md">
