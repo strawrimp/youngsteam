@@ -38,8 +38,13 @@
   border: 1px solid #e0e0e0;
   border-left: 3px solid #0066cc;
   border-radius: 4px;
-  padding: 12px;
+  padding: 16px;
   transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .agentCard:hover {
