@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 가상 회사 - Phase 3 테스트</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1, h2 {
+      color: #0066cc;
+      margin: 20px 0 10px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 250px 1fr 280px;
+      gap: 20px;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 5px 10px 0;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .agent-response {
+      background: #f9f9f9;
+      border-left: 3px solid #0066cc;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .agent-name {
+      font-weight: 600;
+      color: #0066cc;
+      margin-bottom: 5px;
+    }
+    .agent-manager { border-left-color: #0066cc; }
+    .agent-developer { border-left-color: #00aa44; }
+    .agent-designer { border-left-color: #9900ff; }
+    .agent-researcher { border-left-color: #ff9900; }
+
+    .agent-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .badge-manager { background: #0066cc; color: white; }
+    .badge-developer { background: #00aa44; color: white; }
+    .badge-designer { background: #9900ff; color: white; }
+    .badge-researcher { background: #ff9900; color: white; }
+
+    .messages {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      height: 500px;
+      overflow-y: auto;
+      background: #fafafa;
+      border-radius: 4px;
+    }
+    .message {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 4px;
+    }
+    .message.user {
+      background: #0066cc;
+      color: white;
+    }
+    .message.agent {
+      background: #e8f4f8;
+    }
+    .message.status {
+      background: #fff9e6;
+      color: #666;
+      font-size: 12px;
+    }
+    .message.error {
+      background: #ffe6e6;
+      color: #c00;
+    }
+
+    .voting-interface {
+      border: 2px solid #ff6b6b;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      background: #fffbfb;
+    }
+    .voting-topic {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #c00;
+    }
+    .vote-item {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .vote-item:hover {
+      background: #f0f0f0;
+    }
+    .vote-item.selected {
+      border-color: #0066cc;
+      background: #e8f4ff;
+    }
+    .agent-votes {
+      margin: 10px 0;
+      font-size: 13px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+    .agent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .agent-item {
+      padding: 10px;
+      background: #f9f9f9;
+      border-left: 3px solid #ddd;
+      border-radius: 4px;
+    }
+    .agent-item.manager { border-left-color: #0066cc; }
+    .agent-item.developer { border-left-color: #00aa44; }
+    .agent-item.designer { border-left-color: #9900ff; }
+    .agent-item.researcher { border-left-color: #ff9900; }
+  </style>
+</head>
+<body>
+  <h1>🤖 AI 가상 회사 - Phase 3 테스트</h1>
+  <p style="color: #666; margin-bottom: 20px;">4명의 에이전트와 투표 시스템 테스트</p>
+
+  <div class="container">
+    <!-- 에이전트 패널 (좌측) -->
+    <div class="section">
+      <h2>🧠 에이전트</h2>
+      <button onclick="getAgents()" style="width: 100%;">목록 새로고침</button>
+      <div class="agent-list" id="agentsList"></div>
+    </div>
+
+    <!-- 메인 채팅 -->
+    <div class="section full-width">
+      <h2>💬 채팅 인터페이스</h2>
+
+      <div id="status"></div>
+
+      <div class="messages" id="messages"></div>
+
+      <div>
+        <textarea id="userInput" placeholder="에이전트들과 대화하세요..." rows="3"></textarea>
+        <button id="sendBtn" onclick="sendMessage()">전송</button>
+        <button id="clearBtn" onclick="clearMessages()">초기화</button>
+        <button id="votingBtn" onclick="showVotingUI()" style="background: #ff6b6b;">투표 시작</button>
+        <span id="connectionStatus" style="margin-left: 20px; font-weight: bold;"></span>
+      </div>
+    </div>
+
+    <!-- 투표 패널 (우측) -->
+    <div class="section">
+      <h2>🗳️ 투표</h2>
+      <div id="votingPanel">
+        <p style="color: #666; font-size: 13px;">투표는 "투표 시작" 버튼으로 진행</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section full-width" style="margin-top: 20px;">
+    <h2>📖 사용 방법</h2>
+    <ol>
+      <li><strong>WebSocket 연결</strong>: 페이지 로드 시 자동 연결</li>
+      <li><strong>메시지 입력</strong>: 텍스트박스에 메시지 입력</li>
+      <li><strong>전송</strong>: "전송" 버튼 클릭 (모든 4명 에이전트가 응답)</li>
+      <li><strong>투표 시작</strong>: "투표 시작" 버튼으로 투표 진행</li>
+      <li><strong>투표 선택</strong>: 선택지를 클릭하여 투표</li>
+    </ol>
+    <p style="margin-top: 10px; color: #666;">
+      <strong>에이전트:</strong> Manager (CEO) 🟦 | Developer (개발) 🟩 | Designer (디자인) 🟪 | Researcher (리서치) 🟧
+    </p>
+  </div>
+
+  <script>
+    const BACKEND_URL = 'http://localhost:8000';
+    let ws = null;
+    let isProcessing = false;
+    let conversationId = generateUUID();
+    let agentIds = {};
+    let currentVoting = null;
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function updateStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    function appendMessage(content, type = 'status', agentRole = null) {
+      const messagesEl = document.getElementById('messages');
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${type}`;
+
+      if (type === 'agent' && agentRole) {
+        const badge = getBadge(agentRole);
+        messageEl.innerHTML = `<div style="font-weight: bold; margin-bottom: 4px;">${badge} ${agentRole}</div>${content}`;
+      } else {
+        messageEl.textContent = content;
+      }
+
+      messagesEl.appendChild(messageEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function getBadge(role) {
+      const badges = {
+        manager: '<span class="agent-badge badge-manager">Manager</span>',
+        developer: '<span class="agent-badge badge-developer">Developer</span>',
+        designer: '<span class="agent-badge badge-designer">Designer</span>',
+        researcher: '<span class="agent-badge badge-researcher">Researcher</span>',
+      };
+      return badges[role] || role;
+    }
+
+    function clearMessages() {
+      document.getElementById('messages').innerHTML = '';
+    }
+
+    function connectWebSocket() {
+      try {
+        const wsUrl = `ws://${window.location.hostname}:8000/ws`;
+        console.log(`📡 Connecting to: ${wsUrl}`);
+        appendMessage(`연결 시도: ${wsUrl}`, 'status');
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          console.log('✅ WebSocket connected');
+          updateStatus('✓ WebSocket 연결됨', 'success');
+          document.getElementById('sendBtn').disabled = false;
+          appendMessage('✅ WebSocket 연결 완료', 'status');
+          document.getElementById('connectionStatus').textContent = '🟢 연결됨';
+          document.getElementById('connectionStatus').style.color = '#00aa44';
+        };
+
+        ws.onmessage = (event) => {
+          console.log('📥 Message:', event.data);
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'status') {
+            appendMessage(`📊 ${data.message}`, 'status');
+          } else if (data.type === 'agent_response') {
+            const agentRole = data.agent_role || data.agent_id;
+            appendMessage(data.content, 'agent', agentRole);
+          } else if (data.type === 'error') {
+            appendMessage(`❌ Error: ${data.error}`, 'error');
+          }
+
+          isProcessing = false;
+          document.getElementById('sendBtn').disabled = false;
+        };
+
+        ws.onerror = (event) => {
+          console.error('❌ WebSocket error:', event);
+          updateStatus('✗ WebSocket 오류 발생', 'error');
+          appendMessage('❌ WebSocket 오류 발생', 'error');
+        };
+
+        ws.onclose = () => {
+          console.log('🔌 WebSocket closed');
+          updateStatus('✗ WebSocket 연결 해제', 'error');
+          document.getElementById('sendBtn').disabled = true;
+          document.getElementById('connectionStatus').textContent = '🔴 연결 안 됨';
+          document.getElementById('connectionStatus').style.color = '#cc0000';
+          appendMessage('🔌 WebSocket 연결 해제', 'status');
+        };
+      } catch (error) {
+        console.error('💥 Exception:', error);
+        updateStatus(`✗ 오류: ${error.message}`, 'error');
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+
+      if (!message) {
+        updateStatus('메시지를 입력하세요', 'warning');
+        return;
+      }
+
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        updateStatus('WebSocket이 연결되지 않았습니다', 'error');
+        return;
+      }
+
+      if (isProcessing) {
+        updateStatus('이전 요청을 기다리는 중...', 'warning');
+        return;
+      }
+
+      isProcessing = true;
+      document.getElementById('sendBtn').disabled = true;
+
+      appendMessage(`👤 You: ${message}`, 'user');
+      const payload = JSON.stringify({ content: message });
+      ws.send(payload);
+      input.value = '';
+    }
+
+    async function getAgents() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/agents`);
+        const data = await response.json();
+
+        const agentsList = document.getElementById('agentsList');
+        agentsList.innerHTML = '';
+
+        if (data.agents && data.agents.length > 0) {
+          updateStatus(`✓ ${data.agents.length}명의 에이전트 발견`, 'success');
+
+          data.agents.forEach(agent => {
+            agentIds[agent.name] = agent.id;
+            const agentItem = document.createElement('div');
+            agentItem.className = `agent-item ${agent.role}`;
+            agentItem.innerHTML = `
+              <div style="font-weight: bold;">${getBadge(agent.role)}</div>
+              <div style="font-size: 12px; color: #666;">ID: ${agent.id.substring(0, 8)}</div>
+            `;
+            agentsList.appendChild(agentItem);
+          });
+        } else {
+          updateStatus('⚠️ 에이전트를 찾을 수 없습니다', 'warning');
+        }
+      } catch (error) {
+        updateStatus(`✗ 에러: ${error.message}`, 'error');
+      }
+    }
+
+    function showVotingUI() {
+      const topic = prompt('투표 주제를 입력하세요:\n예: 새로운 기능 우선순위');
+      if (!topic) return;
+
+      const candidatesStr = prompt('선택지를 입력하세요 (쉼표로 구분):\n예: 기능A, 기능B, 기능C');
+      if (!candidatesStr) return;
+
+      const candidates = candidatesStr.split(',').map(c => c.trim());
+
+      // 투표 시작
+      startVoting(topic, candidates);
+    }
+
+    async function startVoting(topic, candidates) {
+      try {
+        updateStatus('투표 중...', 'info');
+
+        const response = await fetch(`${BACKEND_URL}/api/voting/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversation_id: conversationId,
+            topic: topic,
+            candidates: candidates
+          })
+        });
+
+        const result = await response.json();
+        currentVoting = result;
+
+        displayVotingResults(result);
+        updateStatus('✓ 투표 완료', 'success');
+      } catch (error) {
+        updateStatus(`✗ 투표 오류: ${error.message}`, 'error');
+      }
+    }
+
+    function displayVotingResults(result) {
+      const votingPanel = document.getElementById('votingPanel');
+      const votes = result.votes || {};
+
+      let html = `<div class="voting-interface">
+        <div class="voting-topic">주제: ${result.topic}</div>`;
+
+      // Show each agent's vote
+      for (const [agentId, voteData] of Object.entries(votes)) {
+        const choice = voteData.choice || 'N/A';
+        const reasoning = voteData.reasoning ? voteData.reasoning.substring(0, 100) + '...' : '';
+
+        html += `<div class="agent-votes">
+          <strong>${choice}</strong><br/>
+          <small style="color: #666;">${reasoning}</small>
+        </div>`;
+      }
+
+      html += `</div>`;
+      votingPanel.innerHTML = html;
+
+      // Calculate consensus
+      const choiceCounts = {};
+      for (const vote of Object.values(votes)) {
+        const choice = vote.choice;
+        choiceCounts[choice] = (choiceCounts[choice] || 0) + 1;
+      }
+
+      let consensus = 'consensus not reached';
+      let maxVotes = 0;
+      for (const [choice, count] of Object.entries(choiceCounts)) {
+        if (count > maxVotes) {
+          maxVotes = count;
+          consensus = choice;
+        }
+      }
+
+      appendMessage(`🗳️ 투표 결과: "${consensus}" (${maxVotes}표)`, 'status');
+    }
+
+    // Enter 키로 메시지 전송
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // 초기 연결
+    window.addEventListener('load', () => {
+      connectWebSocket();
+      getAgents();
+      updateStatus('WebSocket 연결 준비 완료', 'info');
+      document.getElementById('sendBtn').disabled = true;
+    });
+  </script>
+</body>
+</html>

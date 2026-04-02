@@ -17,7 +17,13 @@
       "Bash(git commit -m \"Phase 1: Complete backend and WebSocket implementation:*)",
       "Bash(python scripts/glm_spike.py)",
       "Bash(echo \"일반적인 GLM 모델명::*)",
-      "Bash(git commit -m \"Phase 2: Multi-agent system with ConversationEngine:*)"
+      "Bash(git commit -m \"Phase 2: Multi-agent system with ConversationEngine:*)",
+      "Bash(python3 scripts/init_agents.py)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s http://localhost:8000/api/agents)",
+      "Bash(curl -s http://localhost:3000/phase3-test.html)",
+      "Bash(curl -I http://localhost:3000/phase3-test.html)",
+      "Bash(curl -s http://localhost:8080/phase3-test.html)"
     ]
   }
 }

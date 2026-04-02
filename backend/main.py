@@ -13,8 +13,11 @@ from models.conversation import Conversation
 from models.message import Message
 from sqlalchemy.orm import Session
 from engines.conversation_engine import ConversationEngine
+from engines.voting_engine import VotingEngine
 from agents.manager_agent import ManagerAgent
 from agents.developer_agent import DeveloperAgent
+from agents.designer_agent import DesignerAgent
+from agents.researcher_agent import ResearcherAgent
 from services.memory_service import MemoryService
 from services.glm_service import GLMService
 
@@ -32,8 +35,9 @@ async def lifespan(app: FastAPI):
         init_db()
         logger.info("Database initialized")
 
-        # Initialize conversation engine and agents
+        # Initialize engines and services
         app.state.conversation_engine = ConversationEngine()
+        app.state.voting_engine = VotingEngine()
         app.state.memory_service = MemoryService()
         app.state.glm_service = GLMService()
 
@@ -41,28 +45,29 @@ async def lifespan(app: FastAPI):
         db = SessionLocal()
         agents = db.query(Agent).all()
 
+        # Agent factory mapping
+        agent_factories = {
+            "manager": lambda agent_id, name, glm: ManagerAgent(agent_id, name, glm),
+            "developer": lambda agent_id, name, glm: DeveloperAgent(agent_id, name, glm),
+            "designer": lambda agent_id, name, glm: DesignerAgent(agent_id, name, glm),
+            "researcher": lambda agent_id, name, glm: ResearcherAgent(agent_id, name, glm),
+        }
+
         for agent in agents:
-            if agent.role == "manager":
-                agent_instance = ManagerAgent(
-                    str(agent.id),
-                    agent.name,
-                    app.state.glm_service,
-                )
-            elif agent.role == "developer":
-                agent_instance = DeveloperAgent(
-                    str(agent.id),
-                    agent.name,
-                    app.state.glm_service,
-                )
-            else:
+            if agent.role not in agent_factories:
                 logger.warning(f"Unsupported agent role: {agent.role}")
                 continue
 
-            app.state.conversation_engine.register_agent(str(agent.id), agent_instance)
-            logger.info(f"Registered agent: {agent.name} ({agent.role})")
+            try:
+                factory = agent_factories[agent.role]
+                agent_instance = factory(str(agent.id), agent.name, app.state.glm_service)
+                app.state.conversation_engine.register_agent(str(agent.id), agent_instance)
+                logger.info(f"Registered agent: {agent.name} ({agent.role})")
+            except Exception as e:
+                logger.error(f"Failed to register agent {agent.name}: {e}")
 
         db.close()
-        logger.info("Conversation engine initialized with agents")
+        logger.info(f"Conversation engine initialized with {len(app.state.conversation_engine.agents)} agents")
 
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
@@ -202,6 +207,32 @@ async def list_agents(db: Session = Depends(get_db)):
 async def get_memory(category: str = None, db: Session = Depends(get_db)):
     """Get shared memory by category."""
     return {"status": "ok", "category": category}
+
+
+# REST API endpoints for voting
+@app.post("/api/voting/start")
+async def start_voting(request_data: dict, db: Session = Depends(get_db)):
+    """Start a voting session."""
+    topic = request_data.get("topic")
+    candidates = request_data.get("candidates", [])
+    conversation_id = request_data.get("conversation_id")
+
+    if not topic or not candidates:
+        return {"error": "Missing topic or candidates"}, 400
+
+    voting_id = str(__import__('uuid').uuid4())
+    engine = app.state.conversation_engine
+
+    result = await engine.start_voting(conversation_id, topic, candidates)
+    result["voting_id"] = voting_id
+
+    return result
+
+
+@app.get("/api/voting/{voting_id}/result")
+async def get_voting_result(voting_id: str, db: Session = Depends(get_db)):
+    """Get voting results (voting results are returned from start_voting)."""
+    return {"voting_id": voting_id, "status": "ok"}
 
 
 if __name__ == "__main__":
