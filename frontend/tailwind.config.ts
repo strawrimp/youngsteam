@@ -9,12 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Agent role colors
+        // Agent role colors - Toned down professional palette
         agent: {
-          manager: '#4E7EBE',     // Leadership blue
-          developer: '#4A9B6F',   // Technical green
-          designer: '#7C6BA8',    // Creative purple
-          researcher: '#D4A055',  // Analytical amber
+          manager: '#0066CC',     // Leadership blue (toned down)
+          developer: '#00AA44',   // Technical green (toned down)
+          designer: '#8B5CF6',    // Creative purple (toned down)
+          researcher: '#F59E0B',  // Analytical amber (toned down)
         },
         // Neutral colors
         neutral: {
@@ -75,21 +75,21 @@ const config: Config = {
         '4xl': '64px',
       },
       borderRadius: {
-        'xs': '4px',
-        'sm': '6px',
-        'md': '8px',
-        'lg': '12px',
+        'xs': '2px',
+        'sm': '4px',
+        'md': '4px',
+        'lg': '4px',
         'full': '9999px',
       },
       boxShadow: {
-        'sm': '0 2px 8px rgba(0, 0, 0, 0.04)',
-        'md': '0 4px 12px rgba(0, 0, 0, 0.08)',
-        'lg': '0 8px 24px rgba(0, 0, 0, 0.12)',
-        'inset': 'inset 0 2px 4px rgba(0, 0, 0, 0.1)',
-        'focus-manager': '0 0 0 3px rgba(78, 126, 190, 0.1)',
-        'focus-developer': '0 0 0 3px rgba(74, 155, 111, 0.1)',
-        'focus-designer': '0 0 0 3px rgba(124, 107, 168, 0.1)',
-        'focus-researcher': '0 0 0 3px rgba(212, 160, 85, 0.1)',
+        'sm': '0 1px 3px rgba(0, 0, 0, 0.1)',
+        'md': '0 2px 6px rgba(0, 0, 0, 0.08)',
+        'lg': '0 4px 12px rgba(0, 0, 0, 0.1)',
+        'inset': 'inset 0 1px 2px rgba(0, 0, 0, 0.05)',
+        'focus-manager': '0 0 0 3px rgba(0, 102, 204, 0.1)',
+        'focus-developer': '0 0 0 3px rgba(0, 170, 68, 0.1)',
+        'focus-designer': '0 0 0 3px rgba(139, 92, 246, 0.1)',
+        'focus-researcher': '0 0 0 3px rgba(245, 158, 11, 0.1)',
       },
       outlineColor: {
         'manager': '#4E7EBE',

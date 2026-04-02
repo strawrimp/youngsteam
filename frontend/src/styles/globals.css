@@ -81,16 +81,16 @@
   }
 
   .app-header {
-    background: linear-gradient(135deg, #4E7EBE 0%, #3d5fa3 100%);
-    @apply text-white px-2xl py-lg border-b border-neutral-300 flex-shrink-0;
+    background: #0066CC;
+    @apply text-white px-2xl py-md border-b border-neutral-300 flex-shrink-0;
   }
 
   .app-header h1 {
-    @apply text-4xl font-bold m-0 leading-tight tracking-tight;
+    @apply text-2xl font-600 m-0 leading-tight;
   }
 
   .app-header p {
-    @apply text-lg opacity-90 font-normal mt-sm m-0 font-light;
+    @apply text-sm opacity-80 font-normal mt-xs m-0;
   }
 
   .app-main {
@@ -103,9 +103,8 @@
   }
 
   .app-sidebar-left {
-    @apply h-full min-w-0 overflow-y-auto bg-white border-r border-neutral-200;
+    @apply h-full min-w-0 overflow-y-auto bg-white border-r border-neutral-300;
     scrollbar-width: thin;
-    background: linear-gradient(to bottom, #ffffff 0%, #f9fafb 100%);
   }
 
   .app-center {
@@ -113,7 +112,7 @@
   }
 
   .app-sidebar-right {
-    @apply h-full min-w-0 overflow-y-auto bg-white border-l border-neutral-200;
+    @apply h-full min-w-0 overflow-y-auto bg-white border-l border-neutral-300;
     scrollbar-width: thin;
   }
 
@@ -162,20 +161,20 @@
 @layer components {
   /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center px-lg py-md rounded-md font-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap;
+    @apply inline-flex items-center justify-center px-lg py-md rounded-sm font-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap;
     @apply min-h-touch min-w-touch;
     /* Default: primary agent button */
-    @apply bg-agent-manager text-white shadow-md;
+    @apply bg-agent-manager text-white shadow-sm;
   }
 
   .btn:hover {
-    @apply shadow-lg;
-    filter: brightness(1.05);
+    @apply shadow-md;
+    filter: brightness(1.08);
   }
 
   .btn:active {
-    filter: brightness(0.95);
-    @apply shadow-md;
+    filter: brightness(0.92);
+    @apply shadow-sm;
   }
 
   .btn:disabled {
@@ -213,12 +212,12 @@
 
   /* Input fields */
   .input {
-    @apply w-full px-lg py-md bg-white border-2 border-neutral-200 rounded-md text-base transition-all duration-150;
+    @apply w-full px-md py-md bg-white border border-neutral-300 rounded-sm text-base transition-all duration-150;
     @apply min-h-touch font-normal;
   }
 
   .input:hover {
-    @apply border-neutral-300 bg-neutral-50;
+    @apply border-neutral-400;
   }
 
   .input:focus {
@@ -226,7 +225,7 @@
   }
 
   .input:disabled {
-    @apply bg-neutral-100 text-neutral-500 cursor-not-allowed border-neutral-200;
+    @apply bg-neutral-50 text-neutral-500 cursor-not-allowed border-neutral-300;
   }
 
   .input::placeholder {
@@ -235,12 +234,12 @@
 
   /* Text area */
   .textarea {
-    @apply w-full px-lg py-md bg-white border-2 border-neutral-200 rounded-md text-base resize-none transition-all duration-150;
+    @apply w-full px-md py-md bg-white border border-neutral-300 rounded-sm text-base resize-none transition-all duration-150;
     @apply min-h-[80px] font-normal;
   }
 
   .textarea:hover {
-    @apply border-neutral-300 bg-neutral-50;
+    @apply border-neutral-400;
   }
 
   .textarea:focus {
@@ -249,8 +248,8 @@
 
   /* Badge / Chip */
   .badge {
-    @apply inline-flex items-center px-md py-sm rounded-md font-xs font-semibold;
-    @apply bg-agent-manager bg-opacity-10 text-agent-manager;
+    @apply inline-flex items-center px-md py-xs rounded-sm font-xs font-semibold;
+    @apply bg-agent-manager bg-opacity-15 text-agent-manager;
   }
 
   .badge-solid {
@@ -258,25 +257,26 @@
   }
 
   .badge-outlined {
-    @apply border-2 border-agent-manager bg-transparent text-agent-manager;
+    @apply border border-agent-manager bg-transparent text-agent-manager;
   }
 
   /* Card container */
   .card {
-    @apply bg-white border-2 border-neutral-200 rounded-lg p-lg shadow-sm transition-all duration-200;
+    @apply bg-white border border-neutral-300 rounded-sm p-lg shadow-sm transition-all duration-200;
   }
 
   .card:hover {
-    @apply shadow-md border-neutral-300;
+    @apply shadow-md;
   }
 
   /* Agent card */
   .agent-card {
-    @apply rounded-md p-lg text-white shadow-md border-2 border-opacity-30 transition-all duration-150 mx-sm my-sm;
+    @apply rounded-sm p-md text-white shadow-sm border border-opacity-30 transition-all duration-150 mx-sm my-sm;
+    border-left-width: 4px;
   }
 
   .agent-card:hover {
-    @apply shadow-lg;
+    @apply shadow-md;
     filter: brightness(1.05);
   }
 
@@ -286,15 +286,15 @@
 
   /* Message containers */
   .message-user {
-    @apply ml-auto rounded-2xl rounded-br-md bg-agent-manager text-white px-lg py-md max-w-message shadow-md font-normal;
+    @apply ml-auto rounded-sm bg-agent-manager text-white px-md py-md max-w-message shadow-sm font-normal;
   }
 
   .message-agent {
-    @apply mr-auto rounded-2xl rounded-bl-md bg-neutral-100 text-neutral-900 border-l-4 border-agent-manager px-lg py-md shadow-sm font-normal;
+    @apply mr-auto rounded-sm bg-neutral-50 text-neutral-900 border-l-4 border-agent-manager px-md py-md shadow-sm font-normal;
   }
 
   .message-system {
-    @apply rounded-lg bg-neutral-50 border-l-4 border-info px-lg py-md text-neutral-700 font-normal;
+    @apply rounded-sm bg-neutral-50 border-l-4 border-info px-md py-md text-neutral-700 font-normal;
   }
 
   /* Loading skeleton */
