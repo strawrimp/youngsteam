@@ -86,11 +86,11 @@
   }
 
   .app-header h1 {
-    @apply text-3xl font-bold m-0 leading-tight;
+    @apply text-4xl font-bold m-0 leading-tight tracking-tight;
   }
 
   .app-header p {
-    @apply text-base opacity-95 font-normal mt-md m-0;
+    @apply text-lg opacity-90 font-normal mt-sm m-0 font-light;
   }
 
   .app-main {
@@ -98,8 +98,8 @@
     grid-template-columns: 280px 1fr 300px;
     flex: 1;
     min-height: 0;
-    gap: 1px;
-    background-color: #e2e8f0;
+    gap: 0;
+    background-color: #f8fafc;
   }
 
   .app-sidebar-left {
@@ -161,20 +161,20 @@
 @layer components {
   /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center px-lg py-md rounded-sm font-xs font-medium transition-all duration-200 cursor-pointer whitespace-nowrap;
+    @apply inline-flex items-center justify-center px-lg py-md rounded-md font-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap;
     @apply min-h-touch min-w-touch;
     /* Default: primary agent button */
-    @apply bg-agent-manager text-white;
+    @apply bg-agent-manager text-white shadow-md;
   }
 
   .btn:hover {
-    @apply shadow-md;
-    filter: brightness(1.1);
+    @apply shadow-lg;
+    filter: brightness(1.05);
   }
 
   .btn:active {
-    filter: brightness(0.9);
-    @apply shadow-inset;
+    filter: brightness(0.95);
+    @apply shadow-md;
   }
 
   .btn:disabled {
@@ -212,38 +212,38 @@
 
   /* Input fields */
   .input {
-    @apply w-full px-md py-md bg-white border border-neutral-300 rounded-sm text-base transition-all duration-150;
-    @apply min-h-touch;
+    @apply w-full px-lg py-md bg-white border-2 border-neutral-200 rounded-md text-base transition-all duration-150;
+    @apply min-h-touch font-normal;
   }
 
   .input:hover {
-    @apply border-neutral-600;
+    @apply border-neutral-300 bg-neutral-50;
   }
 
   .input:focus {
-    @apply border-agent-manager outline-none shadow-focus-manager;
+    @apply border-agent-manager outline-none shadow-focus-manager bg-white;
   }
 
   .input:disabled {
-    @apply bg-neutral-50 text-neutral-600 cursor-not-allowed;
+    @apply bg-neutral-100 text-neutral-500 cursor-not-allowed border-neutral-200;
   }
 
   .input::placeholder {
-    @apply text-neutral-600;
+    @apply text-neutral-500;
   }
 
   /* Text area */
   .textarea {
-    @apply w-full px-md py-md bg-white border border-neutral-300 rounded-sm text-base resize-none transition-all duration-150;
-    @apply min-h-[80px];
+    @apply w-full px-lg py-md bg-white border-2 border-neutral-200 rounded-md text-base resize-none transition-all duration-150;
+    @apply min-h-[80px] font-normal;
   }
 
   .textarea:hover {
-    @apply border-neutral-600;
+    @apply border-neutral-300 bg-neutral-50;
   }
 
   .textarea:focus {
-    @apply border-agent-manager outline-none shadow-focus-manager;
+    @apply border-agent-manager outline-none shadow-focus-manager bg-white;
   }
 
   /* Badge / Chip */
@@ -285,15 +285,15 @@
 
   /* Message containers */
   .message-user {
-    @apply ml-auto rounded-[12px] rounded-br-sm bg-agent-manager text-white px-lg py-md max-w-message;
+    @apply ml-auto rounded-2xl rounded-br-md bg-agent-manager text-white px-lg py-md max-w-message shadow-md font-normal;
   }
 
   .message-agent {
-    @apply mr-auto rounded-[12px] rounded-bl-sm bg-neutral-50 text-neutral-900 border-l-4 px-lg py-md;
+    @apply mr-auto rounded-2xl rounded-bl-md bg-neutral-100 text-neutral-900 border-l-4 border-agent-manager px-lg py-md shadow-sm font-normal;
   }
 
   .message-system {
-    @apply rounded-md bg-neutral-100 border-l-4 border-info px-lg py-md text-neutral-600;
+    @apply rounded-lg bg-neutral-50 border-l-4 border-info px-lg py-md text-neutral-700 font-normal;
   }
 
   /* Loading skeleton */
@@ -399,81 +399,7 @@
     }
   }
 
-  /* Dark mode variables */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-    }
-
-    body {
-      @apply bg-neutral-900 text-neutral-100;
-      background-color: #0f1419 !important;
-      color: #e2e8f0 !important;
-    }
-
-    .app-container {
-      @apply bg-neutral-900;
-      background-color: #0f1419 !important;
-    }
-
-    .app-header {
-      background: linear-gradient(135deg, #5a8fd6 0%, #4a7ec8 100%) !important;
-      @apply border-b border-neutral-800;
-    }
-
-    .app-sidebar-left,
-    .app-center,
-    .app-sidebar-right {
-      @apply bg-neutral-900 border-neutral-800;
-      background-color: #1a202c !important;
-    }
-
-    .card {
-      @apply bg-neutral-800 border-neutral-700 text-neutral-100;
-    }
-
-    .input,
-    .textarea {
-      @apply bg-neutral-800 border-neutral-700 text-neutral-100;
-    }
-
-    .input::placeholder,
-    .textarea::placeholder {
-      @apply text-neutral-500;
-    }
-
-    .message-user {
-      @apply bg-agent-manager text-white;
-    }
-
-    .message-agent {
-      @apply bg-neutral-800 text-neutral-100 border-l-agent-manager;
-    }
-
-    .message-system {
-      @apply bg-neutral-800 border-l-info text-neutral-300;
-    }
-
-    .btn {
-      @apply bg-agent-manager text-white;
-    }
-
-    .btn-secondary {
-      @apply bg-neutral-800 border-neutral-700 text-neutral-100;
-    }
-
-    .btn-ghost {
-      @apply bg-transparent text-neutral-100;
-    }
-
-    .btn-ghost:hover {
-      @apply bg-neutral-800;
-    }
-
-    .btn-ghost:active {
-      @apply bg-neutral-700;
-    }
-  }
+  /* Dark mode disabled - using light mode only */
 }
 
 /* Print styles */
