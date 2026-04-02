@@ -7,11 +7,16 @@ import json
 from contextlib import asynccontextmanager
 
 from config import settings
-from database import init_db, get_db
+from database import init_db, get_db, SessionLocal
 from models.agent import Agent
 from models.conversation import Conversation
 from models.message import Message
 from sqlalchemy.orm import Session
+from engines.conversation_engine import ConversationEngine
+from agents.manager_agent import ManagerAgent
+from agents.developer_agent import DeveloperAgent
+from services.memory_service import MemoryService
+from services.glm_service import GLMService
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
@@ -26,8 +31,42 @@ async def lifespan(app: FastAPI):
     try:
         init_db()
         logger.info("Database initialized")
+
+        # Initialize conversation engine and agents
+        app.state.conversation_engine = ConversationEngine()
+        app.state.memory_service = MemoryService()
+        app.state.glm_service = GLMService()
+
+        # Get agents from database
+        db = SessionLocal()
+        agents = db.query(Agent).all()
+
+        for agent in agents:
+            if agent.role == "manager":
+                agent_instance = ManagerAgent(
+                    str(agent.id),
+                    agent.name,
+                    app.state.glm_service,
+                )
+            elif agent.role == "developer":
+                agent_instance = DeveloperAgent(
+                    str(agent.id),
+                    agent.name,
+                    app.state.glm_service,
+                )
+            else:
+                logger.warning(f"Unsupported agent role: {agent.role}")
+                continue
+
+            app.state.conversation_engine.register_agent(str(agent.id), agent_instance)
+            logger.info(f"Registered agent: {agent.name} ({agent.role})")
+
+        db.close()
+        logger.info("Conversation engine initialized with agents")
+
     except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
+        logger.error(f"Failed to initialize: {e}")
+
     yield
     # Shutdown
     logger.info("Shutting down")
@@ -60,9 +99,13 @@ async def health_check():
 # WebSocket endpoint for real-time chat
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time communication."""
+    """WebSocket endpoint for real-time communication and agent interaction."""
     await websocket.accept()
     logger.info(f"WebSocket client connected: {websocket.client}")
+
+    conversation_id = str(__import__('uuid').uuid4())
+    engine = app.state.conversation_engine
+    memory = app.state.memory_service
 
     try:
         while True:
@@ -75,15 +118,56 @@ async def websocket_endpoint(websocket: WebSocket):
             except json.JSONDecodeError:
                 message_data = {"content": data}
 
-            # Echo test for Phase 1
-            response = {
-                "type": "echo",
-                "content": f"Echo: {message_data.get('content', 'no content')}",
-                "timestamp": str(__import__('datetime').datetime.now()),
-            }
+            user_message = message_data.get("content", "").strip()
 
-            await websocket.send_json(response)
-            logger.debug(f"WebSocket sent: {response}")
+            if not user_message:
+                await websocket.send_json({"error": "Empty message"})
+                continue
+
+            # Send processing notification
+            await websocket.send_json({
+                "type": "status",
+                "status": "processing",
+                "message": "에이전트들이 의견을 수집 중입니다...",
+            })
+
+            # Process message through agents
+            try:
+                result = await engine.process_message(conversation_id, user_message)
+
+                # Send agent responses
+                for agent_id, response in result.get("agent_responses", {}).items():
+                    agent = engine.agents.get(agent_id)
+                    agent_name = agent.name if agent else agent_id
+
+                    await websocket.send_json({
+                        "type": "agent_response",
+                        "agent_id": agent_id,
+                        "agent_name": agent_name,
+                        "content": response,
+                        "timestamp": result["timestamp"],
+                    })
+
+                # Save to memory
+                await memory.save_memory(
+                    category="conversation",
+                    content=f"User: {user_message}",
+                    created_by="user",
+                )
+
+                # Send completion status
+                await websocket.send_json({
+                    "type": "status",
+                    "status": "complete",
+                    "message": "✓ 모든 에이전트가 응답했습니다.",
+                })
+
+            except Exception as e:
+                logger.error(f"Error processing message: {e}")
+                await websocket.send_json({
+                    "type": "error",
+                    "error": str(e),
+                })
 
     except Exception as e:
         logger.error(f"WebSocket error: {type(e).__name__}: {e}")

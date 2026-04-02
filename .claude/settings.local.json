@@ -14,7 +14,10 @@
       "Bash(postgres --version)",
       "Bash(npm install:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"Phase 1: Complete backend and WebSocket implementation:*)"
+      "Bash(git commit -m \"Phase 1: Complete backend and WebSocket implementation:*)",
+      "Bash(python scripts/glm_spike.py)",
+      "Bash(echo \"일반적인 GLM 모델명::*)",
+      "Bash(git commit -m \"Phase 2: Multi-agent system with ConversationEngine:*)"
     ]
   }
 }

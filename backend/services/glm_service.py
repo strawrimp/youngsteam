@@ -81,6 +81,12 @@ class GLMService:
             return "[Error] GLM API request timed out"
         except httpx.HTTPError as e:
             logger.error(f"GLM API error: {e}")
+            logger.error(f"Status: {e.response.status_code if hasattr(e, 'response') else 'N/A'}")
+            if hasattr(e, 'response'):
+                try:
+                    logger.error(f"Response body: {e.response.text}")
+                except:
+                    pass
             return f"[Error] GLM API error: {str(e)}"
         except Exception as e:
             logger.error(f"Unexpected error calling GLM: {e}")

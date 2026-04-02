@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 가상 회사 - Phase 2 테스트</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1, h2 {
+      color: #0066cc;
+      margin: 20px 0 10px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 5px 10px 0;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .agent-response {
+      background: #f9f9f9;
+      border-left: 3px solid #0066cc;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .agent-name {
+      font-weight: 600;
+      color: #0066cc;
+      margin-bottom: 5px;
+    }
+    .messages {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      height: 400px;
+      overflow-y: auto;
+      background: #fafafa;
+      border-radius: 4px;
+    }
+    .message {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 4px;
+    }
+    .message.user {
+      background: #0066cc;
+      color: white;
+    }
+    .message.agent {
+      background: #e8f4f8;
+    }
+    .message.status {
+      background: #fff9e6;
+      color: #666;
+      font-size: 12px;
+    }
+    .message.error {
+      background: #ffe6e6;
+      color: #c00;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 AI 가상 회사 - Phase 2 테스트</h1>
+
+  <div class="container">
+    <!-- 메인 채팅 -->
+    <div class="section full-width">
+      <h2>채팅 인터페이스</h2>
+
+      <div id="status"></div>
+
+      <div class="messages" id="messages"></div>
+
+      <div>
+        <textarea id="userInput" placeholder="에이전트들과 대화하세요..." rows="3"></textarea>
+        <button id="sendBtn" onclick="sendMessage()">전송</button>
+        <button id="clearBtn" onclick="clearMessages()">초기화</button>
+        <span id="connectionStatus" style="margin-left: 20px; font-weight: bold;"></span>
+      </div>
+    </div>
+
+    <!-- 연결 상태 -->
+    <div class="section">
+      <h2>📊 상태</h2>
+      <button id="connectBtn" onclick="connectWebSocket()">WebSocket 연결</button>
+      <button id="disconnectBtn" onclick="disconnectWebSocket()" disabled>연결 해제</button>
+      <div id="connectionInfo" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- 에이전트 정보 -->
+    <div class="section">
+      <h2>🧠 에이전트</h2>
+      <button onclick="getAgents()">에이전트 목록 조회</button>
+      <div id="agentsInfo" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- 사용 설명서 -->
+    <div class="section full-width">
+      <h2>📖 사용 방법</h2>
+      <ol>
+        <li><strong>WebSocket 연결</strong>: "WebSocket 연결" 버튼 클릭</li>
+        <li><strong>메시지 입력</strong>: 텍스트박스에 메시지 입력</li>
+        <li><strong>전송</strong>: "전송" 버튼 클릭 또는 Enter</li>
+        <li><strong>응답 확인</strong>: Manager와 Developer 에이전트의 응답 확인</li>
+      </ol>
+      <p style="margin-top: 10px; color: #666;">
+        <strong>주의:</strong> GLM API가 연동되지 않았으므로 Mock 응답이 전송됩니다.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = 'http://localhost:8000';
+    let ws = null;
+    let isProcessing = false;
+
+    function updateStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    function appendMessage(content, type = 'status') {
+      const messagesEl = document.getElementById('messages');
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${type}`;
+      messageEl.textContent = content;
+      messagesEl.appendChild(messageEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function clearMessages() {
+      document.getElementById('messages').innerHTML = '';
+    }
+
+    function connectWebSocket() {
+      try {
+        const wsUrl = `ws://${window.location.hostname}:8000/ws`;
+        console.log(`📡 Connecting to: ${wsUrl}`);
+        appendMessage(`연결 시도: ${wsUrl}`, 'status');
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          console.log('✅ WebSocket connected');
+          updateStatus('✓ WebSocket 연결됨', 'success');
+          document.getElementById('connectBtn').disabled = true;
+          document.getElementById('disconnectBtn').disabled = false;
+          document.getElementById('sendBtn').disabled = false;
+          appendMessage('✅ WebSocket 연결 완료', 'status');
+          document.getElementById('connectionStatus').textContent = '🟢 연결됨';
+          document.getElementById('connectionStatus').style.color = '#00aa44';
+        };
+
+        ws.onmessage = (event) => {
+          console.log('📥 Message:', event.data);
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'status') {
+            appendMessage(`📊 ${data.message}`, 'status');
+          } else if (data.type === 'agent_response') {
+            const agentName = data.agent_name || data.agent_id;
+            const html = `<div class="agent-response">
+              <div class="agent-name">${agentName}</div>
+              <div>${data.content}</div>
+            </div>`;
+            document.getElementById('messages').innerHTML += html;
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+          } else if (data.type === 'error') {
+            appendMessage(`❌ Error: ${data.error}`, 'error');
+          }
+
+          isProcessing = false;
+          document.getElementById('sendBtn').disabled = false;
+        };
+
+        ws.onerror = (event) => {
+          console.error('❌ WebSocket error:', event);
+          updateStatus('✗ WebSocket 오류 발생', 'error');
+          appendMessage('❌ WebSocket 오류 발생', 'error');
+        };
+
+        ws.onclose = () => {
+          console.log('🔌 WebSocket closed');
+          updateStatus('✗ WebSocket 연결 해제', 'error');
+          document.getElementById('connectBtn').disabled = false;
+          document.getElementById('disconnectBtn').disabled = true;
+          document.getElementById('sendBtn').disabled = true;
+          document.getElementById('connectionStatus').textContent = '🔴 연결 안 됨';
+          document.getElementById('connectionStatus').style.color = '#cc0000';
+          appendMessage('🔌 WebSocket 연결 해제', 'status');
+        };
+      } catch (error) {
+        console.error('💥 Exception:', error);
+        updateStatus(`✗ 오류: ${error.message}`, 'error');
+      }
+    }
+
+    function disconnectWebSocket() {
+      if (ws) {
+        ws.close();
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+
+      if (!message) {
+        updateStatus('메시지를 입력하세요', 'warning');
+        return;
+      }
+
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        updateStatus('WebSocket이 연결되지 않았습니다', 'error');
+        return;
+      }
+
+      if (isProcessing) {
+        updateStatus('이전 요청을 기다리는 중...', 'warning');
+        return;
+      }
+
+      isProcessing = true;
+      document.getElementById('sendBtn').disabled = true;
+
+      appendMessage(`👤 You: ${message}`, 'user');
+      const payload = JSON.stringify({ content: message });
+      ws.send(payload);
+      input.value = '';
+    }
+
+    async function getAgents() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/agents`);
+        const data = await response.json();
+
+        const html = data.agents.map(a =>
+          `<div style="padding: 5px; border-left: 3px solid #0066cc;">
+            <strong>${a.name}</strong> (${a.role})<br/>
+            <small>ID: ${a.id}</small>
+          </div>`
+        ).join('');
+
+        document.getElementById('agentsInfo').innerHTML = html;
+        updateStatus(`✓ ${data.agents.length}명의 에이전트 발견`, 'success');
+      } catch (error) {
+        updateStatus(`✗ 에러: ${error.message}`, 'error');
+      }
+    }
+
+    // Enter 키로 메시지 전송
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // 초기 상태
+    updateStatus('WebSocket 연결을 기다리는 중...', 'info');
+    document.getElementById('sendBtn').disabled = true;
+  </script>
+</body>
+</html>
