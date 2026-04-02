@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
-import { ChatWindow } from './components/ChatWindow';
-import { AgentPanel } from './components/AgentPanel';
-import { VotingPanel } from './components/VotingPanel';
-import { useConversationStore } from './store';
-import { Message as MessageType, AgentResponse, Vote, VotingResult } from './types';
-import './App.css';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+import './App.css'
+import { ChatWindow } from './components/ChatWindow'
+import { AgentPanel } from './components/AgentPanel'
+import { VotingPanel } from './components/VotingPanel'
+import { useConversationStore } from './store'
+import { Message as MessageType, AgentResponse } from './types'
+import { useEffect } from 'react'
 
 const App: React.FC = () => {
   const {
@@ -13,12 +16,9 @@ const App: React.FC = () => {
     addMessage,
     addAgentResponse,
     setProcessingStatus,
-    setVotingResults,
-    setIsVoting,
   } = useConversationStore();
 
   useEffect(() => {
-    // Initialize WebSocket connection
     const conversationId = `conv-${Date.now()}`;
     setConversationId(conversationId);
 
@@ -40,7 +40,6 @@ const App: React.FC = () => {
             break;
 
           case 'agent_response':
-            // Add agent message to chat
             const agentMsg: MessageType = {
               id: `msg-${Date.now()}-${Math.random()}`,
               conversationId,
@@ -52,7 +51,6 @@ const App: React.FC = () => {
             };
             addMessage(agentMsg);
 
-            // Store agent response for panel
             const response: AgentResponse = {
               agentId: data.agent_id,
               agentName: data.agent_name,
@@ -96,7 +94,7 @@ const App: React.FC = () => {
     return () => {
       ws.close();
     };
-  }, [setConnected, setConversationId, addMessage, addAgentResponse, setProcessingStatus, setVotingResults]);
+  }, [setConnected, setConversationId, addMessage, addAgentResponse, setProcessingStatus]);
 
   return (
     <div className="app-container">
@@ -122,4 +120,8 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);

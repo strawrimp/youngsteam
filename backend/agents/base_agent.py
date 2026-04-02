@@ -36,25 +36,38 @@ class BaseAgent(ABC):
         """
         raise NotImplementedError
 
-    async def respond(self, message: str) -> str:
+    async def respond(
+        self,
+        message: str,
+        task_type: str = "default",
+        complexity: float = 0.0,
+    ) -> str:
         """
         Respond to a user message.
 
         Args:
             message: User message
+            task_type: Type of task (used for model selection in hybrid strategy)
+            complexity: Task complexity score (0.0-1.0)
 
         Returns:
             Agent's response
         """
         raise NotImplementedError
 
-    async def vote(self, topic: str, candidates: List[str]) -> Dict:
+    async def vote(
+        self,
+        topic: str,
+        candidates: List[str],
+        task_type: str = "voting",
+    ) -> Dict:
         """
         Cast a vote on a topic.
 
         Args:
             topic: Topic for voting
             candidates: Available choices
+            task_type: Type of task (default: 'voting' which requires R1)
 
         Returns:
             Dict with 'choice' and 'reasoning'

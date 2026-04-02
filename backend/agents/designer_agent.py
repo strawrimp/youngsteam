@@ -1,7 +1,7 @@
 """Designer Agent - Design and UX role"""
 
 from .base_agent import BaseAgent
-from services.glm_service import GLMService
+from services.deepseek_service import DeepSeekService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 class DesignerAgent(BaseAgent):
     """Design and UX specialist agent."""
 
-    def __init__(self, agent_id: str, name: str = "Designer", glm_service: GLMService = None):
+    def __init__(self, agent_id: str, name: str = "Designer", deepseek_service: DeepSeekService = None):
         """Initialize Designer agent.
 
         Args:
             agent_id: Unique agent ID
             name: Agent name (default: Designer)
-            glm_service: GLM service instance for API calls
+            deepseek_service: DeepSeek service instance for API calls
         """
         system_prompt = """당신은 AI 회사의 디자인 리드입니다. 전문:
 - UI/UX 설계 및 사용자 경험
@@ -26,7 +26,7 @@ class DesignerAgent(BaseAgent):
 디자인 관점에서 통찰력 있는 의견을 제시하세요."""
 
         super().__init__(agent_id, name, "designer", system_prompt)
-        self.glm = glm_service or GLMService()
+        self.deepseek = deepseek_service or DeepSeekService()
 
     async def think(self, context: str) -> str:
         """Process context and generate design insights.
@@ -43,20 +43,29 @@ class DesignerAgent(BaseAgent):
 
 사용자 경험, 인터페이스 설계, 시각적 일관성을 고려하여 분석하세요."""
 
-        response = await self.glm.call_model(
+        response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
             user_message=prompt,
             conversation_history=self.get_history(10),
+            task_type="insight",
+            complexity=0.6,
         )
 
         self.add_to_history("assistant", response)
         return response
 
-    async def respond(self, message: str) -> str:
+    async def respond(
+        self,
+        message: str,
+        task_type: str = "default",
+        complexity: float = 0.0,
+    ) -> str:
         """Respond to a user message from Designer perspective.
 
         Args:
             message: User message
+            task_type: Type of task (used for model selection)
+            complexity: Task complexity score
 
         Returns:
             Designer's response
@@ -67,22 +76,30 @@ class DesignerAgent(BaseAgent):
 
 사용자 경험, 인터페이스 설계, 시각적 미학을 고려한 제안을 제시하세요. (2-3문장)"""
 
-        response = await self.glm.call_model(
+        response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
             user_message=prompt,
             conversation_history=self.get_history(10),
+            task_type=task_type or "default",
+            complexity=complexity,
         )
 
         self.add_to_history("user", message)
         self.add_to_history("assistant", response)
         return response
 
-    async def vote(self, topic: str, candidates: list) -> dict:
+    async def vote(
+        self,
+        topic: str,
+        candidates: list,
+        task_type: str = "voting",
+    ) -> dict:
         """Cast a vote on a topic.
 
         Args:
             topic: Topic to vote on
             candidates: List of candidate choices
+            task_type: Type of task (default: 'voting' which requires R1)
 
         Returns:
             Dict with choice and reasoning
@@ -97,10 +114,12 @@ class DesignerAgent(BaseAgent):
 디자인/UX 관점에서 사용자 경험이 가장 좋은 선택을 고르고, 이유를 간단히 설명하세요.
 형식: "선택: [선택 번호]"로 시작하세요."""
 
-        response = await self.glm.call_model(
+        response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
             user_message=prompt,
             conversation_history=self.get_history(5),
+            task_type=task_type,  # "voting" → uses R1
+            complexity=1.0,  # Voting is always high complexity
         )
 
         # Extract choice from response

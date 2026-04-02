@@ -1,103 +1,357 @@
 DEBUG:asyncio:Using selector: KqueueSelector
-INFO:     Started server process [65951]
+INFO:     Started server process [69374]
 INFO:     Waiting for application startup.
 INFO:__main__:Starting up AI Virtual Company backend
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine BEGIN (implicit)
 INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("agents")
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("agents")
 INFO:sqlalchemy.engine.Engine:PRAGMA main.table_info("agents")
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine [raw sql] ()
 INFO:sqlalchemy.engine.Engine:[raw sql] ()
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("conversations")
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("conversations")
 INFO:sqlalchemy.engine.Engine:PRAGMA main.table_info("conversations")
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine [raw sql] ()
 INFO:sqlalchemy.engine.Engine:[raw sql] ()
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("conversations")
-INFO:sqlalchemy.engine.Engine:PRAGMA temp.table_info("conversations")
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
-INFO:sqlalchemy.engine.Engine:[raw sql] ()
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("messages")
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("messages")
 INFO:sqlalchemy.engine.Engine:PRAGMA main.table_info("messages")
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine [raw sql] ()
 INFO:sqlalchemy.engine.Engine:[raw sql] ()
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("messages")
-INFO:sqlalchemy.engine.Engine:PRAGMA temp.table_info("messages")
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [raw sql] ()
-INFO:sqlalchemy.engine.Engine:[raw sql] ()
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine 
-CREATE TABLE conversations (
-	id VARCHAR(36) NOT NULL, 
-	title VARCHAR(255), 
-	is_voting BOOLEAN, 
-	started_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
-	ended_at DATETIME, 
-	PRIMARY KEY (id)
-)
-
-
-INFO:sqlalchemy.engine.Engine:
-CREATE TABLE conversations (
-	id VARCHAR(36) NOT NULL, 
-	title VARCHAR(255), 
-	is_voting BOOLEAN, 
-	started_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
-	ended_at DATETIME, 
-	PRIMARY KEY (id)
-)
-
-
-2026-04-02 14:02:26,695 INFO sqlalchemy.engine.Engine [no key 0.00003s] ()
-INFO:sqlalchemy.engine.Engine:[no key 0.00003s] ()
-2026-04-02 14:02:26,696 INFO sqlalchemy.engine.Engine 
-CREATE TABLE messages (
-	id VARCHAR(36) NOT NULL, 
-	conversation_id VARCHAR(36) NOT NULL, 
-	agent_id VARCHAR(36), 
-	sender_type VARCHAR(20) NOT NULL, 
-	content VARCHAR NOT NULL, 
-	message_type VARCHAR(20), 
-	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
-	PRIMARY KEY (id), 
-	FOREIGN KEY(conversation_id) REFERENCES conversations (id) ON DELETE CASCADE, 
-	FOREIGN KEY(agent_id) REFERENCES agents (id) ON DELETE SET NULL
-)
-
-
-INFO:sqlalchemy.engine.Engine:
-CREATE TABLE messages (
-	id VARCHAR(36) NOT NULL, 
-	conversation_id VARCHAR(36) NOT NULL, 
-	agent_id VARCHAR(36), 
-	sender_type VARCHAR(20) NOT NULL, 
-	content VARCHAR NOT NULL, 
-	message_type VARCHAR(20), 
-	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
-	PRIMARY KEY (id), 
-	FOREIGN KEY(conversation_id) REFERENCES conversations (id) ON DELETE CASCADE, 
-	FOREIGN KEY(agent_id) REFERENCES agents (id) ON DELETE SET NULL
-)
-
-
-2026-04-02 14:02:26,696 INFO sqlalchemy.engine.Engine [no key 0.00003s] ()
-INFO:sqlalchemy.engine.Engine:[no key 0.00003s] ()
-2026-04-02 14:02:26,696 INFO sqlalchemy.engine.Engine COMMIT
+2026-04-02 16:46:48,895 INFO sqlalchemy.engine.Engine COMMIT
 INFO:sqlalchemy.engine.Engine:COMMIT
 INFO:__main__:Database initialized
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
-INFO:     ::1:64755 - "GET /health HTTP/1.1" 200 OK
-INFO:     ::1:64755 - "GET /health HTTP/1.1" 200 OK
-2026-04-02 14:03:00,235 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:__main__:✅ DeepSeek Service initialized (Hybrid: True)
+INFO:__main__:   API Key: sk-9f6c059...
+2026-04-02 16:46:48,896 INFO sqlalchemy.engine.Engine BEGIN (implicit)
 INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
-2026-04-02 14:03:00,238 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+2026-04-02 16:46:48,897 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
 FROM agents
 INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
 FROM agents
-2026-04-02 14:03:00,238 INFO sqlalchemy.engine.Engine [generated in 0.00025s] ()
-INFO:sqlalchemy.engine.Engine:[generated in 0.00025s] ()
-INFO:     ::1:64755 - "GET /api/agents HTTP/1.1" 200 OK
-2026-04-02 14:03:00,240 INFO sqlalchemy.engine.Engine ROLLBACK
+2026-04-02 16:46:48,897 INFO sqlalchemy.engine.Engine [generated in 0.00005s] ()
+INFO:sqlalchemy.engine.Engine:[generated in 0.00005s] ()
+INFO:engines.conversation_engine:Registered agent: bf324cf5-605e-44f1-a221-2d3b04509109 (Manager)
+INFO:__main__:Registered agent: Manager (manager)
+INFO:engines.conversation_engine:Registered agent: 16d23d9d-62d0-4dfd-a9f8-9d419ba787bf (Developer)
+INFO:__main__:Registered agent: Developer (developer)
+INFO:engines.conversation_engine:Registered agent: e8a24346-9874-4c7a-9915-57faf509bc1b (Designer)
+INFO:__main__:Registered agent: Designer (designer)
+INFO:engines.conversation_engine:Registered agent: 8640382a-2f30-46c9-be22-d63c7d1442e6 (Researcher)
+INFO:__main__:Registered agent: Researcher (researcher)
+2026-04-02 16:46:48,897 INFO sqlalchemy.engine.Engine ROLLBACK
 INFO:sqlalchemy.engine.Engine:ROLLBACK
-WARNING:  Unsupported upgrade request.
-WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
-INFO:     ::1:64758 - "GET /ws HTTP/1.1" 404 Not Found
+INFO:__main__:Conversation engine initialized with 4 agents
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:54065 - "GET /health HTTP/1.1" 200 OK
+INFO:     ('::1', 54066) - "WebSocket /ws" [accepted]
+INFO:__main__:WebSocket client connected: Address(host='::1', port=54066)
+INFO:     connection open
+DEBUG:__main__:WebSocket received: {"content": "\uc0c8\ub85c\uc6b4 AI \uc774\ubbf8\uc9c0 \ud3b8\uc9d1 \ub3c4\uad6c \ud504\ub85c\uc81d\ud2b8\ub97c \uc2dc\uc791\ud574\uc57c \ud560\uae4c? \ub2f9\uc2e0\ub4e4\uc758 \uc758\uacac\uc744 \uc8fc\uc138\uc694."}
+INFO:engines.conversation_engine:Processing message in conversation 76bcd786-0174-4d06-9b2e-e8775a347da4
+INFO:engines.conversation_engine:Consulting agents: ['bf324cf5-605e-44f1-a221-2d3b04509109', '16d23d9d-62d0-4dfd-a9f8-9d419ba787bf', 'e8a24346-9874-4c7a-9915-57faf509bc1b', '8640382a-2f30-46c9-be22-d63c7d1442e6']
+DEBUG:engines.conversation_engine:Getting response from Manager
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-chat (task_type=default, complexity=0.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:engines.conversation_engine:Getting response from Developer
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-chat (task_type=default, complexity=0.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a854c0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10995c970> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a85fd0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a7f4a0> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a46d60>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a903d0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:47:05 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'53fb204e152bc15fc80e991dc4453519'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 17ff16a11feaf655839f5a6a3b5bfb7e.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P4'), (b'X-Amz-Cf-Id', b'SCFLTETlg3PCvFnLacLAW3xhZKzqsnpHE85A0xi1bZoFpix6gNogHA==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:47:05 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'b14083a4ecf011d103d8d46ab6720621'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 7e0f98c1523ac227fe8acc1d9878e238.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN80-P3'), (b'X-Amz-Cf-Id', b'D-t4J6qNj0o85-W6yL3qleYXjpllGYmf3jh2kJf_HfwI1CO5AawPoQ==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek v4 response received (164 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:engines.conversation_engine:Developer responded: AI 이미지 편집 도구의 기술적 실현 가능성은 높으나, 구현 난이도는 선택하는 AI 모델(예: GAN, Diffusion)과 기능 범위에 크게 좌우됩니다. 아키텍처 측면에서는 클라...
+DEBUG:engines.conversation_engine:Getting response from Designer
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-chat (task_type=default, complexity=0.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek v4 response received (154 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:engines.conversation_engine:Manager responded: AI 이미지 편집 도구 프로젝트는 시장 수요와 기술 트렌드에 부합하지만, 현재 진행 중인 핵심 프로젝트와의 자원 배분 우선순위를 고려해야 합니다. 먼저 시장 조사와 ROI 분석을 ...
+DEBUG:engines.conversation_engine:Getting response from Researcher
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-chat (task_type=default, complexity=0.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ac0b20>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a6c270> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ac0790>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10995c350> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ac0f70>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a780a0>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:47:10 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'f818b2f20de3a709c0526cba2b297869'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 a56d3b11f1b04a34855060085e3bacb8.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P4'), (b'X-Amz-Cf-Id', b'E2aoSFRznSz_IcWOONYx3PqvWYtleYalS8BahMesjP8cM34gTjC3IA==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:47:10 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'de9ea6c3e8192bfdf61bc72f34e32ff2'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 9d3ea8885c25c0b9b8ac8e7a18328cf8.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P3'), (b'X-Amz-Cf-Id', b'roNIFQX2tvbjZnbr10l87M3eYI4ehtUKeJdGCrwrEqy5BvzLfTBTYA==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek v4 response received (208 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:engines.conversation_engine:Designer responded: 새로운 AI 이미지 편집 도구는 사용자 경험 측면에서 직관적인 인터페이스 설계가 핵심입니다. 시각적 미학을 위해 일관된 디자인 시스템을 구축하고, AI 기능을 자연스럽게 통합하여 ...
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek v4 response received (200 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:engines.conversation_engine:Researcher responded: 현재 AI 이미지 편집 시장은 연평균 35% 성장 중이며, 특히 생성형 AI를 활용한 실시간 편집 및 프롬프트 기반 작업 흐름에 대한 수요가 두드러집니다. 그러나 경쟁이 치열하므로...
+INFO:services.memory_service:Saved memory: conversation (by user)
+ERROR:__main__:WebSocket error: WebSocketDisconnect: 1000
+INFO:__main__:WebSocket client disconnected
+INFO:     connection closed
+INFO:engines.conversation_engine:Starting voting on topic: 다음 분기 우선순위 결정
+INFO:engines.conversation_engine:Candidates: ['AI 이미지 편집 도구', '데이터 분석 플랫폼', '자동화 워크플로우']
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109aa7580>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a6c900> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ab57f0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:47:59 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'caa48aebda4e569670336da349de0f99'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 c0cc3e172f1604d9ea2e1a47ab5d02ce.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN80-P3'), (b'X-Amz-Cf-Id', b'PEGys-yH6sytvZs_jAtP91j-B619nWJ-ThBBzj8Otitb1gMmn3nSxQ==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (237 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Manager voted: 자동화 워크플로우
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ad7cd0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a7f4a0> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ad7be0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:48:25 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'69df8e46193a6bb801b203820121db82'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 03c985dbdde3ffc6a0154957b11a5e58.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P5'), (b'X-Amz-Cf-Id', b'ojvdKNlvC6810FuvhEblmfWxCOLNMI4nZteRZtlKNQ0ZXnXSpCyEDw==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (220 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Developer voted: AI 이미지 편집 도구
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109adaa90>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a7ff90> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109adad00>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:48:40 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'eea874e98abddb9d913e0aa19305e85e'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 537fb246a629e70727949aab939451c6.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P5'), (b'X-Amz-Cf-Id', b'WoU62uC3poMwSfZGCfyYfV3in9wyp2oFqxhXbXCiIWVvt7zo7DDTFw==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (221 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Designer voted: AI 이미지 편집 도구
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ad7370>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10995c9e0> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ad7280>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:48:56 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'a8700595539b5021e5699dc1b682fd0b'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 9ab83947d27b71b1d4dcac77556378d0.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P6'), (b'X-Amz-Cf-Id', b'cXc2AweKHC5mr0rU4kxD0dk6yE9e4svwq830Iv7ooDsk1YYgOjhB-A==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (262 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Researcher voted: 데이터 분석 플랫폼
+INFO:     ::1:54107 - "POST /api/voting/start HTTP/1.1" 200 OK
+INFO:engines.conversation_engine:Starting voting on topic: 다음 분기 우선순위
+INFO:engines.conversation_engine:Candidates: ['AI 이미지 편집', '데이터 분석']
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a464c0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10995cb30> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109a08fa0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:50:17 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'b8658ecb6e3a51573143c660f2e55760'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 9e8f89a7026892d73b3377ab142a028c.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P4'), (b'X-Amz-Cf-Id', b'1aZRcw4oQfCCku62RElP2_-WMW65W3RVP6QaV290aC1RnRkzzopIRw==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (141 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Manager voted: 데이터 분석
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ac00d0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10995c820> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ac9040>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:50:30 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'4129e0aebd88cb9c86aef45748bd34dd'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 da083e1f0c15d1726da737581424156c.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P6'), (b'X-Amz-Cf-Id', b'GgMGyuZaHncqaSEahNTgMMbl0OKLrOMhKbCrcaUWz9cABvFQTOpzJQ==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (161 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Developer voted: 데이터 분석
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ae4100>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a7fdd0> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ae0fd0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:50:50 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'03f31e3c5197bff1a7fe373227af4095'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 cd59529676cd6614aefd1a455d902808.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P5'), (b'X-Amz-Cf-Id', b'4Y1Y03cda7XNj-jlt2cN-IYLO0X0Vj-WgxPD4oRkguDRMzKqsCUENg==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (215 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Designer voted: AI 이미지 편집
+DEBUG:services.deepseek_service:Calling DeepSeek API with model: deepseek-reasoner (task_type=voting, complexity=1.0)
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='/Users/maegmini/Library/Python/3.9/lib/python/site-packages/certifi/cacert.pem'
+DEBUG:httpcore.connection:connect_tcp.started host='api.deepseek.com' port=443 local_address=None timeout=60.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ae4eb0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x109a7f890> server_hostname='api.deepseek.com' timeout=60.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x109ae4b80>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'Date', b'Thu, 02 Apr 2026 07:51:09 GMT'), (b'Server', b'elb'), (b'Content-Encoding', b'gzip'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-credentials', b'true'), (b'x-ds-trace-id', b'c28e76dc022068500886ed6b9404edc9'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'X-Cache', b'Miss from cloudfront'), (b'Via', b'1.1 3f975ac5cc286fead371147677e43108.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'ICN57-P6'), (b'X-Amz-Cf-Id', b'sIFCMVbvcPnI2NWM-xEdTNMxMUYshkfOJyoNCQmafKmYTGmMN-AGFQ==')])
+INFO:httpx:HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:services.deepseek_service:DeepSeek r1 response received (220 chars)
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:engines.conversation_engine:Researcher voted: AI 이미지 편집
+INFO:     ::1:54188 - "POST /api/voting/start HTTP/1.1" 200 OK
+INFO:     ::1:58823 - "GET /health HTTP/1.1" 200 OK
+INFO:     ::1:58894 - "GET /health HTTP/1.1" 200 OK
+2026-04-02 19:08:23,916 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 19:08:23,917 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 19:08:23,917 INFO sqlalchemy.engine.Engine [cached since 8495s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 8495s ago] ()
+INFO:     ::1:58895 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 19:08:23,918 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:61125 - "GET /health HTTP/1.1" 200 OK
+INFO:     ::1:61128 - "GET /health HTTP/1.1" 200 OK
+2026-04-02 20:01:57,273 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-04-02 20:01:57,274 INFO sqlalchemy.engine.Engine SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+INFO:sqlalchemy.engine.Engine:SELECT agents.id AS agents_id, agents.name AS agents_name, agents.role AS agents_role, agents.status AS agents_status, agents.system_prompt AS agents_system_prompt, agents.created_at AS agents_created_at, agents.updated_at AS agents_updated_at 
+FROM agents
+2026-04-02 20:01:57,274 INFO sqlalchemy.engine.Engine [cached since 1.171e+04s ago] ()
+INFO:sqlalchemy.engine.Engine:[cached since 1.171e+04s ago] ()
+INFO:     ::1:61128 - "GET /api/agents HTTP/1.1" 200 OK
+2026-04-02 20:01:57,275 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:     ::1:62491 - "GET /health HTTP/1.1" 200 OK
+INFO:     ::1:62498 - "GET /health HTTP/1.1" 200 OK

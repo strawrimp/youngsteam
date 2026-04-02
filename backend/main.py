@@ -20,6 +20,7 @@ from agents.designer_agent import DesignerAgent
 from agents.researcher_agent import ResearcherAgent
 from services.memory_service import MemoryService
 from services.glm_service import GLMService
+from services.deepseek_service import DeepSeekService
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
@@ -39,6 +40,18 @@ async def lifespan(app: FastAPI):
         app.state.conversation_engine = ConversationEngine()
         app.state.voting_engine = VotingEngine()
         app.state.memory_service = MemoryService()
+
+        # Use DeepSeek service with hybrid V4 + R1 strategy
+        app.state.deepseek_service = DeepSeekService(
+            api_key=settings.deepseek_api_key,
+            model=settings.deepseek_model,
+            temperature=settings.deepseek_temperature,
+            enable_hybrid=settings.deepseek_enable_hybrid,
+        )
+        logger.info(f"✅ DeepSeek Service initialized (Hybrid: {settings.deepseek_enable_hybrid})")
+        logger.info(f"   API Key: {settings.deepseek_api_key[:10]}..." if settings.deepseek_api_key else "   API Key: NOT SET")
+
+        # Keep GLM service for backward compatibility
         app.state.glm_service = GLMService()
 
         # Get agents from database
@@ -47,10 +60,10 @@ async def lifespan(app: FastAPI):
 
         # Agent factory mapping
         agent_factories = {
-            "manager": lambda agent_id, name, glm: ManagerAgent(agent_id, name, glm),
-            "developer": lambda agent_id, name, glm: DeveloperAgent(agent_id, name, glm),
-            "designer": lambda agent_id, name, glm: DesignerAgent(agent_id, name, glm),
-            "researcher": lambda agent_id, name, glm: ResearcherAgent(agent_id, name, glm),
+            "manager": lambda agent_id, name, service: ManagerAgent(agent_id, name, service),
+            "developer": lambda agent_id, name, service: DeveloperAgent(agent_id, name, service),
+            "designer": lambda agent_id, name, service: DesignerAgent(agent_id, name, service),
+            "researcher": lambda agent_id, name, service: ResearcherAgent(agent_id, name, service),
         }
 
         for agent in agents:
@@ -60,7 +73,8 @@ async def lifespan(app: FastAPI):
 
             try:
                 factory = agent_factories[agent.role]
-                agent_instance = factory(str(agent.id), agent.name, app.state.glm_service)
+                # Use DeepSeekService for hybrid V4 + R1 strategy
+                agent_instance = factory(str(agent.id), agent.name, app.state.deepseek_service)
                 app.state.conversation_engine.register_agent(str(agent.id), agent_instance)
                 logger.info(f"Registered agent: {agent.name} ({agent.role})")
             except Exception as e:
@@ -233,6 +247,32 @@ async def start_voting(request_data: dict, db: Session = Depends(get_db)):
 async def get_voting_result(voting_id: str, db: Session = Depends(get_db)):
     """Get voting results (voting results are returned from start_voting)."""
     return {"voting_id": voting_id, "status": "ok"}
+
+
+# REST API endpoints for model usage stats
+@app.get("/api/stats/models")
+async def get_model_usage_stats():
+    """Get DeepSeek V4 vs R1 usage statistics."""
+    service = app.state.deepseek_service
+    stats = service.get_model_usage_stats()
+    return {
+        "status": "ok",
+        "model_strategy": "hybrid (V4 + R1)",
+        "stats": stats,
+        "description": {
+            "v4": "DeepSeek V4 - Fast, cost-effective for standard tasks",
+            "r1": "DeepSeek R1 - Advanced reasoning for complex tasks (voting, strategy, analysis)",
+            "hybrid_selection": "Automatic based on task type and complexity",
+        }
+    }
+
+
+@app.post("/api/stats/models/reset")
+async def reset_model_stats():
+    """Reset model usage statistics (admin only)."""
+    service = app.state.deepseek_service
+    service.reset_usage_stats()
+    return {"status": "ok", "message": "Model usage statistics reset"}
 
 
 if __name__ == "__main__":

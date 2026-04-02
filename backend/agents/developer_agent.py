@@ -1,7 +1,7 @@
 """Developer Agent - Technical role"""
 
 from .base_agent import BaseAgent
-from services.glm_service import GLMService
+from services.deepseek_service import DeepSeekService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 class DeveloperAgent(BaseAgent):
     """Technical lead agent for development decisions."""
 
-    def __init__(self, agent_id: str, name: str = "Developer", glm_service: GLMService = None):
+    def __init__(self, agent_id: str, name: str = "Developer", deepseek_service: DeepSeekService = None):
         """Initialize Developer agent.
 
         Args:
             agent_id: Unique agent ID
             name: Agent name (default: Developer)
-            glm_service: GLM service instance for API calls
+            deepseek_service: DeepSeek service instance for API calls
         """
         system_prompt = """당신은 AI 회사의 기술 리드입니다. 전문:
 - Python, JavaScript, 아키텍처 설계
@@ -26,7 +26,7 @@ class DeveloperAgent(BaseAgent):
 기술적 관점에서 현명한 의견을 제시하세요."""
 
         super().__init__(agent_id, name, "developer", system_prompt)
-        self.glm = glm_service or GLMService()
+        self.deepseek = deepseek_service or DeepSeekService()
 
     async def think(self, context: str) -> str:
         """Process context and generate technical analysis.
@@ -43,20 +43,29 @@ class DeveloperAgent(BaseAgent):
 
 기술적 복잡도, 구현 가능성, 아키텍처 영향을 고려하여 분석하세요."""
 
-        response = await self.glm.call_model(
+        response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
             user_message=prompt,
             conversation_history=self.get_history(10),
+            task_type="architecture",
+            complexity=0.8,
         )
 
         self.add_to_history("assistant", response)
         return response
 
-    async def respond(self, message: str) -> str:
+    async def respond(
+        self,
+        message: str,
+        task_type: str = "default",
+        complexity: float = 0.0,
+    ) -> str:
         """Respond to a user message from Developer perspective.
 
         Args:
             message: User message
+            task_type: Type of task (used for model selection)
+            complexity: Task complexity score
 
         Returns:
             Developer's response
@@ -67,22 +76,30 @@ class DeveloperAgent(BaseAgent):
 
 기술적 실현 가능성, 구현 난이도, 아키텍처 영향을 고려한 조언을 제시하세요. (2-3문장)"""
 
-        response = await self.glm.call_model(
+        response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
             user_message=prompt,
             conversation_history=self.get_history(10),
+            task_type=task_type or "code_review",
+            complexity=complexity,
         )
 
         self.add_to_history("user", message)
         self.add_to_history("assistant", response)
         return response
 
-    async def vote(self, topic: str, candidates: list) -> dict:
+    async def vote(
+        self,
+        topic: str,
+        candidates: list,
+        task_type: str = "voting",
+    ) -> dict:
         """Cast a vote on a topic.
 
         Args:
             topic: Topic to vote on
             candidates: List of candidate choices
+            task_type: Type of task (default: 'voting' which requires R1)
 
         Returns:
             Dict with choice and reasoning
@@ -97,10 +114,12 @@ class DeveloperAgent(BaseAgent):
 개발자 관점에서 기술적으로 가장 타당한 선택을 고르고, 이유를 간단히 설명하세요.
 형식: "선택: [선택 번호]"로 시작하세요."""
 
-        response = await self.glm.call_model(
+        response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
             user_message=prompt,
             conversation_history=self.get_history(5),
+            task_type=task_type,  # "voting" → uses R1
+            complexity=1.0,  # Voting is always high complexity
         )
 
         # Extract choice from response
