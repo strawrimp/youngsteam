@@ -105,6 +105,7 @@
   .app-sidebar-left {
     @apply h-full min-w-0 overflow-y-auto bg-white border-r border-neutral-200;
     scrollbar-width: thin;
+    background: linear-gradient(to bottom, #ffffff 0%, #f9fafb 100%);
   }
 
   .app-center {
@@ -248,25 +249,25 @@
 
   /* Badge / Chip */
   .badge {
-    @apply inline-flex items-center px-sm py-xs rounded-xs font-xs font-medium;
-    @apply bg-agent-manager bg-opacity-15 text-agent-manager;
+    @apply inline-flex items-center px-md py-sm rounded-md font-xs font-semibold;
+    @apply bg-agent-manager bg-opacity-10 text-agent-manager;
   }
 
   .badge-solid {
-    @apply bg-agent-manager text-white;
+    @apply bg-agent-manager text-white shadow-sm;
   }
 
   .badge-outlined {
-    @apply border border-agent-manager bg-transparent text-agent-manager;
+    @apply border-2 border-agent-manager bg-transparent text-agent-manager;
   }
 
   /* Card container */
   .card {
-    @apply bg-white border border-neutral-300 rounded-md p-lg shadow-sm transition-all duration-200;
+    @apply bg-white border-2 border-neutral-200 rounded-lg p-lg shadow-sm transition-all duration-200;
   }
 
   .card:hover {
-    @apply shadow-md;
+    @apply shadow-md border-neutral-300;
   }
 
   /* Agent card */
@@ -340,6 +341,15 @@
 
   .flex-between {
     @apply flex items-center justify-between;
+  }
+
+  /* Section spacing utilities */
+  .section {
+    @apply space-y-lg;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-neutral-900 mb-md;
   }
 
   /* Grid utilities */
