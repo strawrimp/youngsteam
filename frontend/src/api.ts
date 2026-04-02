@@ -1,6 +1,7 @@
 import { Agent, ModelStats, VotingResult } from './types';
 
-const API_BASE = 'http://localhost:8000';
+// Build API base URL dynamically using current host
+const API_BASE = `http://${window.location.hostname}:8000`;
 
 export const api = {
   // Health check

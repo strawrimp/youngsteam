@@ -22,7 +22,11 @@ const App: React.FC = () => {
     const conversationId = `conv-${Date.now()}`;
     setConversationId(conversationId);
 
-    const ws = new WebSocket(`ws://localhost:8000/ws`);
+    // Build WebSocket URL dynamically using current host
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.hostname;
+    const wsUrl = `${wsProtocol}//${wsHost}:8000/ws`;
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('WebSocket connected');
