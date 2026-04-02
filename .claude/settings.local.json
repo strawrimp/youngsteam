@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(mkdir -p backend frontend/src)",
+      "Bash(mkdir -p models schemas agents engines services routes utils scripts)"
+    ]
+  }
+}
