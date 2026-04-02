@@ -88,7 +88,8 @@
       "Bash(pkill -f \"vite\\\\|bun run dev\")",
       "Bash(pkill -9 vite)",
       "Bash(pkill -9 'bun run')",
-      "Bash(kill -9 79014)"
+      "Bash(kill -9 79014)",
+      "Bash(grep -r uvicorn /Users/maegmini/my-ai-company/backend/ --include=*.py)"
     ]
   }
 }

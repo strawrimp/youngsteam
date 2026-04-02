@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     api_key_header: str = ""  # X-API-Key for auth (empty = disabled)
 
     # WebSocket
-    ws_host: str = "localhost"
+    ws_host: str = "0.0.0.0"
     ws_port: int = 8000
 
     # Environment
