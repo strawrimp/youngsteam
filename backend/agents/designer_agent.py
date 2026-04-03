@@ -28,6 +28,9 @@ class DesignerAgent(BaseAgent):
         super().__init__(agent_id, name, "designer", system_prompt)
         self.deepseek = deepseek_service or DeepSeekService()
 
+        # Load SOUL personality
+        self._soul_system_prompt = self.get_soul_system_prompt(debate_style="diplomatic")
+
     async def think(self, context: str) -> str:
         """Process context and generate design insights.
 
@@ -133,3 +136,50 @@ class DesignerAgent(BaseAgent):
             "choice": choice,
             "reasoning": response,
         }
+
+    async def respond_to_debate(
+        self,
+        topic: str,
+        previous_messages: list,
+        round_num: int,
+        mode: str = "debate",
+    ) -> str:
+        """Respond in a debate considering other agents' views.
+
+        Args:
+            topic: Debate topic
+            previous_messages: List of previous messages in this debate
+            round_num: Current round number
+            mode: debate | brainstorm | consensus
+
+        Returns:
+            Designer's debate response
+        """
+        # Build context from previous messages
+        context = f"주제: {topic}\n라운드: {round_num}\n\n이전 의견들:\n"
+        for msg in previous_messages[-10:]:  # Last 10 messages for context
+            context += f"- {msg.get('agent_name', 'Unknown')}: {msg.get('content', '')}\n"
+
+        debate_mode_instruction = {
+            "debate": "상대 의견에 대해 논리적으로 반박하거나 개선안을 제시하세요.",
+            "brainstorm": "다른 의견들을 존중하면서 새로운 아이디어를 제안하세요.",
+            "consensus": "공통점을 찾아 합의점을 도출하는 방향으로 응답하세요.",
+        }
+
+        prompt = f"""{context}
+
+디자인/UX 관점에서 위 의견들을 종합하여 다음과 같이 응답하세요:
+{debate_mode_instruction.get(mode, debate_mode_instruction['debate'])}
+
+사용자 경험, 인터페이스 설계, 시각적 미학을 고려하여 2-3문장으로 응답하세요."""
+
+        response = await self.deepseek.call_model(
+            system_prompt=self.system_prompt,
+            user_message=prompt,
+            conversation_history=self.get_history(10),
+            task_type="debate",
+            complexity=0.8,
+        )
+
+        self.add_to_history("assistant", response)
+        return response

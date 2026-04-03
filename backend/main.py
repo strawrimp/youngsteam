@@ -14,6 +14,8 @@ from models.message import Message
 from sqlalchemy.orm import Session
 from engines.conversation_engine import ConversationEngine
 from engines.voting_engine import VotingEngine
+from engines.debate_engine import DebateEngine
+from agents.agent_message_broker import AgentMessageBroker
 from agents.manager_agent import ManagerAgent
 from agents.developer_agent import DeveloperAgent
 from agents.designer_agent import DesignerAgent
@@ -21,6 +23,13 @@ from agents.researcher_agent import ResearcherAgent
 from services.memory_service import MemoryService
 from services.glm_service import GLMService
 from services.deepseek_service import DeepSeekService
+from services.llm_provider_service import (
+    LLMProviderService,
+    DeepSeekProvider,
+    OpenAIProvider,
+    ClaudeProvider,
+    OllamaProvider,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +48,8 @@ async def lifespan(app: FastAPI):
         # Initialize engines and services
         app.state.conversation_engine = ConversationEngine()
         app.state.voting_engine = VotingEngine()
+        app.state.debate_engine = DebateEngine()
+        app.state.message_broker = AgentMessageBroker()
         app.state.memory_service = MemoryService()
 
         # Use DeepSeek service with hybrid V4 + R1 strategy
@@ -53,6 +64,45 @@ async def lifespan(app: FastAPI):
 
         # Keep GLM service for backward compatibility
         app.state.glm_service = GLMService()
+
+        # Initialize multi-provider LLM service
+        llm_provider_service = LLMProviderService()
+
+        # Register DeepSeek as primary provider
+        deepseek_provider = DeepSeekProvider(
+            api_key=settings.deepseek_api_key,
+            model=settings.deepseek_model,
+        )
+        llm_provider_service.register_provider("deepseek", deepseek_provider, is_primary=True)
+        logger.info(f"✅ Registered LLM Provider: DeepSeek (Primary)")
+
+        # Register OpenAI if available
+        if settings.openai_api_key:
+            openai_provider = OpenAIProvider(
+                api_key=settings.openai_api_key,
+                model="gpt-4o",
+            )
+            llm_provider_service.register_provider("openai", openai_provider)
+            logger.info(f"✅ Registered LLM Provider: OpenAI")
+
+        # Register Claude if available
+        if settings.claude_api_key:
+            claude_provider = ClaudeProvider(
+                api_key=settings.claude_api_key,
+                model="claude-sonnet-4-20250514",
+            )
+            llm_provider_service.register_provider("claude", claude_provider)
+            logger.info(f"✅ Registered LLM Provider: Claude")
+
+        # Always support Ollama for local inference
+        ollama_provider = OllamaProvider(
+            base_url=settings.ollama_url,
+            model=settings.ollama_model,
+        )
+        llm_provider_service.register_provider("ollama", ollama_provider)
+        logger.info(f"✅ Registered LLM Provider: Ollama (Local)")
+
+        app.state.llm_provider_service = llm_provider_service
 
         # Get agents from database
         db = SessionLocal()
@@ -73,9 +123,9 @@ async def lifespan(app: FastAPI):
 
             try:
                 factory = agent_factories[agent.role]
-                # Use DeepSeekService for hybrid V4 + R1 strategy
                 agent_instance = factory(str(agent.id), agent.name, app.state.deepseek_service)
                 app.state.conversation_engine.register_agent(str(agent.id), agent_instance)
+                app.state.debate_engine.register_agent(str(agent.id), agent_instance)
                 logger.info(f"Registered agent: {agent.name} ({agent.role})")
             except Exception as e:
                 logger.error(f"Failed to register agent {agent.name}: {e}")
@@ -302,6 +352,89 @@ async def reset_model_stats():
     service = app.state.deepseek_service
     service.reset_usage_stats()
     return {"status": "ok", "message": "Model usage statistics reset"}
+
+
+# REST API endpoints for debate
+@app.post("/api/debate/start")
+async def start_debate(request_data: dict):
+    """Start a multi-round debate."""
+    topic = request_data.get("topic")
+    agent_ids = request_data.get("agent_ids", [])
+    num_rounds = request_data.get("num_rounds", 2)
+    mode = request_data.get("mode", "debate")
+
+    if not topic:
+        return {"error": "Missing topic"}, 400
+
+    debate_engine = app.state.debate_engine
+
+    if not agent_ids:
+        agent_ids = list(debate_engine.agents.keys())
+
+    result = await debate_engine.start_debate(
+        topic=topic,
+        agent_ids=agent_ids,
+        num_rounds=num_rounds,
+        mode=mode,
+    )
+
+    return {
+        "status": "ok",
+        "debate_id": result.debate_id,
+        "topic": result.topic,
+        "mode": result.mode,
+        "rounds": result.rounds,
+        "message_count": len(result.messages),
+        "final_summary": result.final_summary,
+        "messages": [
+            {
+                "round": m.round_num,
+                "agent": m.agent_name,
+                "content": m.content,
+            }
+            for m in result.messages
+        ],
+    }
+
+
+@app.get("/api/debate/{debate_id}")
+async def get_debate(debate_id: str):
+    """Get debate details."""
+    return {"status": "ok", "debate_id": debate_id}
+
+
+# REST API endpoints for LLM providers
+@app.get("/api/llm/providers")
+async def get_llm_providers():
+    """Get available LLM providers."""
+    service = app.state.llm_provider_service
+    providers = list(service.providers.keys())
+    stats = service.get_stats()
+
+    return {
+        "status": "ok",
+        "providers": providers,
+        "primary": service.fallback_order[0] if service.fallback_order else None,
+        "stats": stats,
+    }
+
+
+@app.get("/api/llm/stats")
+async def get_llm_stats():
+    """Get LLM provider statistics."""
+    service = app.state.llm_provider_service
+    stats = service.get_stats()
+
+    return {
+        "status": "ok",
+        "stats": stats,
+        "description": {
+            "calls": "Total API calls made",
+            "errors": "Total errors encountered",
+            "success_rate": "Success rate (0.0 - 1.0)",
+            "avg_latency_ms": "Average latency in milliseconds",
+        },
+    }
 
 
 if __name__ == "__main__":

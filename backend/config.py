@@ -19,9 +19,14 @@ class Settings(BaseSettings):
     deepseek_temperature: float = 0.7
     deepseek_enable_hybrid: bool = True  # Enable automatic V4/R1 selection
 
+    # Multi-Provider LLM Service
+    openai_api_key: Optional[str] = None
+    claude_api_key: Optional[str] = None
+    ollama_url: str = "http://localhost:11434"
+    ollama_model: str = "llama2"
+
     # Image Service
     image_service: str = "dall_e"  # or "local", "glm_vision"
-    openai_api_key: Optional[str] = None
 
     # API
     api_key_header: str = ""  # X-API-Key for auth (empty = disabled)

@@ -3,6 +3,7 @@
 import uuid
 from abc import ABC
 from typing import Dict, List, Optional
+from agents.soul.loader import get_soul_loader
 
 
 class BaseAgent(ABC):
@@ -83,8 +84,33 @@ class BaseAgent(ABC):
         return self.conversation_history[-limit:]
 
     def clear_history(self):
-        """Clear conversation history."""
         self.conversation_history = []
+
+    def get_soul_system_prompt(self, shared_memory: str = "", debate_style: str = "diplomatic") -> str:
+        """Get SOUL-based system prompt for this agent.
+
+        Args:
+            shared_memory: Shared memory content
+            debate_style: Debate style (assertive, diplomatic, analytical)
+
+        Returns:
+            Personalized system prompt
+        """
+        soul_loader = get_soul_loader()
+        return soul_loader.get_personalized_prompt(
+            role=self.role,
+            shared_memory=shared_memory,
+            debate_style=debate_style,
+        )
+
+    async def respond_to_debate(
+        self,
+        topic: str,
+        previous_messages: List[Dict],
+        round_num: int,
+        mode: str = "debate",
+    ) -> str:
+        raise NotImplementedError
 
     def __repr__(self):
         return f"<{self.__class__.__name__}(id={self.id}, name={self.name}, role={self.role})>"
