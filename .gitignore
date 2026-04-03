@@ -35,3 +35,7 @@ frontend/npm-debug.log
 *.db
 *.sqlite
 .gstack/
+
+# Worktrees
+.worktrees/
+worktrees/
