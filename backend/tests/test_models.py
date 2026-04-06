@@ -5,6 +5,8 @@ from database import Base
 from models.project import Project
 from models.agent import Agent
 from models.project_agent import ProjectAgent
+from models.message import Message
+from models.conversation import Conversation
 
 
 @pytest.fixture
@@ -109,3 +111,24 @@ def test_unique_project_agent_constraint(db_session):
 
     with pytest.raises(Exception):  # UNIQUE 제약 위반
         db_session.commit()
+
+
+def test_message_with_project_id(db_session):
+    """Message에 project_id 필드가 존재하는지 테스트"""
+    # 프로젝트와 대화 생성
+    project = Project(name="메시지 테스트")
+    conversation = Conversation(title="테스트 대화")
+    db_session.add_all([project, conversation])
+    db_session.commit()
+
+    # 메시지 생성 (project_id 포함)
+    message = Message(
+        conversation_id=conversation.id,
+        sender_type="user",
+        content="안녕하세요",
+        project_id=project.id,
+    )
+    db_session.add(message)
+    db_session.commit()
+
+    assert message.project_id == project.id
