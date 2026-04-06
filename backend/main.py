@@ -1,36 +1,9 @@
-"""FastAPI application for AI Virtual Company."""
+from websocket.manager import ConnectionManager
 
-from fastapi import FastAPI, WebSocket, Depends, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-import logging
-import json
-from contextlib import asynccontextmanager
+ from websocket.events import EventType, create_event
+from websocket.manager import ConnectionManager
 
-from config import settings
-from database import init_db, get_db, SessionLocal
-from models.agent import Agent
-from models.conversation import Conversation
-from models.message import Message
-from models.team_settings import TeamSettings
-from sqlalchemy.orm import Session
-from engines.conversation_engine import ConversationEngine
-from engines.voting_engine import VotingEngine
-from engines.debate_engine import DebateEngine
-from agents.agent_message_broker import AgentMessageBroker
-from agents.manager_agent import ManagerAgent
-from agents.developer_agent import DeveloperAgent
-from agents.designer_agent import DesignerAgent
-from agents.researcher_agent import ResearcherAgent
-from services.memory_service import MemoryService
-from services.glm_service import GLMService
-from services.deepseek_service import DeepSeekService
-from services.llm_provider_service import (
-    LLMProviderService,
-    DeepSeekProvider,
-    OpenAIProvider,
-    ClaudeProvider,
-    OllamaProvider,
-)
+from websocket.events import EventType, create_event
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -111,7 +84,9 @@ async def lifespan(app: FastAPI):
         llm_provider_service.register_provider("ollama", ollama_provider)
         logger.info(f"✅ Registered LLM Provider: Ollama (Local)")
 
-        app.state.llm_provider_service = llm_provider_service
+    app.state.ws_manager = ConnectionManager()
+    logger.info("✅ WebSocket Connection Manager initialized")
+
 
         # Get agents from database
         db = SessionLocal()
@@ -198,104 +173,117 @@ async def health_check():
 
 
 # WebSocket endpoint for real-time chat
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time communication and agent interaction."""
-    await websocket.accept()
-    logger.info(f"WebSocket client connected: {websocket.client}")
-
-    conversation_id = str(__import__("uuid").uuid4())
-    engine = app.state.conversation_engine
-    memory = app.state.memory_service
-
-    logger.info(f"Engine has {len(engine.agents)} agents")
-
-    try:
-        while True:
-            # Receive text message
-            data = await websocket.receive_text()
-            logger.info(f"WebSocket received: {data}")
-
             try:
-                message_data = json.loads(data)
-            except json.JSONDecodeError:
-                message_data = {"content": data}
+                data = await websocket.receive_text()
+                logger.info(f"WebSocket received: {data}")
+                
+                try:
+                    message = json.loads(data)
+                    action = message.get("action")
+                    
+                    # Handle different actions
+                    if action == "subscribe_project":
+                        # 프로젝트 구독
+                        project_id = message.get("project_id")
+                        if project_id:
+                            await app.state.ws_manager.subscribe_to_project(websocket, project_id)
+                            await app.state.ws_manager.send_personal_message({
+                                "type": "subscribed",
+                                "project_id": project_id
+                            }, websocket)
+                    
+                    elif action == "unsubscribe_project":
+                        # 프로젝트 구독 해제
+                        project_id = message.get("project_id")
+                        if project_id:
+                            await app.state.ws_manager.unsubscribe_from_project(websocket, project_id)
+                            await app.state.ws_manager.send_personal_message({
+                                "type": "unsubscribed",
+                                "project_id": project_id
+                            }, websocket)
+                    
+                    elif action == "chat":
+                        # 기존 채팅 로직 유지
+                        user_message = message.get("content", "").strip()
+                        conversation_id = message.get("conversation_id")
+                        
+                        if not conversation_id:
+                            await app.state.ws_manager.send_personal_message({
+                                "error": "Conversation ID required"
+                            }, websocket)
+                            continue
+                        
+                        # 기존 채팅 로직
+                        engine = app.state.conversation_engine
+                        try:
+                            logger.info("About to call engine.process_message")
+                            result = await engine.process_message(conversation_id, user_message)
+                            logger.info(
+                                f"Engine returned with {len(result.get('agent_responses', {}))} responses"
+                            )
 
-            user_message = message_data.get("content", "").strip()
+                            # Send agent responses
+                            for agent_id, response in result.get("agent_responses", {}).items():
+                                agent = engine.agents.get(agent_id)
+                                agent_name = agent.name if agent else agent_id
 
-            if not user_message:
-                await websocket.send_json({"error": "Empty message"})
-                continue
+                                
+                                await websocket.send_json(
+                                    {
+                                        "type": "agent_response",
+                                        "agent_id": agent_id,
+                                        "agent_name": agent_name,
+                                        "content": response,
+                                        "timestamp": result["timestamp"],
+                                    }
+                                )
+                            else:
+                                logger.warning(f"Agent {agent_id} not found")
+                        
+                        # Save to memory
+                        await memory.save_memory(
+                            category="conversation",
+                            content=f"User: {user_message}",
+                            created_by="user"
+                        )
+                        )
 
-            # Send processing notification
-            await websocket.send_json(
-                {
-                    "type": "status",
-                    "status": "processing",
-                    "message": "에이전트들이 의견을 수집 중입니다...",
-                }
-            )
-
-            logger.info(f"Calling engine.process_message with: {user_message}")
-
-            # Process message through agents
-            try:
-                logger.info("About to call engine.process_message")
-                result = await engine.process_message(conversation_id, user_message)
-                logger.info(
-                    f"Engine returned with {len(result.get('agent_responses', {}))} responses"
-                )
-
-                logger.info(f"Engine returned result keys: {list(result.keys())}")
-                if result.get("agent_responses"):
-                    logger.info(
-                        f"Agent response keys: {list(result.get('agent_responses', {}).keys())}"
-                    )
-
-                # Send agent responses
-                for agent_id, response in result.get("agent_responses", {}).items():
-                    agent = engine.agents.get(agent_id)
-                    agent_name = agent.name if agent else agent_id
-
+                    # Send completion status
                     await websocket.send_json(
                         {
-                            "type": "agent_response",
-                            "agent_id": agent_id,
-                            "agent_name": agent_name,
-                            "content": response,
-                            "timestamp": result["timestamp"],
+                            "type": "status",
+                            "status": "complete",
+                            "message": "✅ 모all 에이전트 can 응답했습니다.",
                         }
-                    )
+                    else:
+                        await websocket.send_json(
+                            {
+                                "error": f"Unknown action: {action}"
+                            }
+                        )
 
-                # Save to memory
-                await memory.save_memory(
-                    category="conversation",
-                    content=f"User: {user_message}",
-                    created_by="user",
-                )
+                    except json.JSONDecodeError:
+                        await websocket.send_json(
+                            {
+                                "error": "Invalid JSON"
+                            }
+                        )
+                    except Exception as e:
+                        logger.error(f"Error processing message: {e}")
+                        await websocket.send_json(
+                            {
+                                "error": str(e),
+                            }
+                        )
 
-                # Send completion status
-                await websocket.send_json(
-                    {
-                        "type": "status",
-                        "status": "complete",
-                        "message": "✓ 모든 에이전트가 응답했습니다.",
-                    }
-                )
-
-            except Exception as e:
-                logger.error(f"Error processing message: {e}")
-                await websocket.send_json(
-                    {
-                        "type": "error",
-                        "error": str(e),
-                    }
-                )
-
-    except Exception as e:
-        logger.error(f"WebSocket error: {type(e).__name__}: {e}")
-    finally:
-        logger.info(f"WebSocket client disconnected")
+                    except WebSocketDisconnect:
+                        app.state.ws_manager.disconnect(websocket)
+                        logger.info(f"WebSocket client disconnected")
+                    
+                    except Exception as e:
+                        logger.error(f"WebSocket error: {type(e).__name__}: {e}")
+                        app.state.ws_manager.disconnect(websocket)
+                        logger.info(f"WebSocket client disconnected")
 
 
 # REST API endpoints for chat

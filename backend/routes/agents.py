@@ -5,8 +5,18 @@ from database import get_db
 from models.agent import Agent
 from models.project_agent import ProjectAgent
 from schemas.agent import AgentResponse, AgentInviteRequest
+from websocket.events import EventType, create_event
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
+
+# WebSocket manager (main.py에서 주입)
+ws_manager = None
+
+
+def set_ws_manager(manager):
+    """WebSocket manager 주입"""
+    global ws_manager
+    ws_manager = manager
 
 
 @router.get("/", response_model=List[AgentResponse])
@@ -55,6 +65,22 @@ def invite_agent(invite: AgentInviteRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(binding)
 
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+
+        event = create_event(
+            EventType.AGENT_INVITED,
+            {
+                "id": binding.id,
+                "project_id": binding.project_id,
+                "agent_id": binding.agent_id,
+                "is_lead": binding.is_lead,
+                "agent_name": agent.name,
+            },
+        )
+        asyncio.create_task(ws_manager.broadcast_to_project(invite.project_id, event))
+
     return {
         "id": binding.id,
         "project_id": binding.project_id,
@@ -82,5 +108,14 @@ def remove_agent_from_project(
 
     db.delete(binding)
     db.commit()
+
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+
+        event = create_event(
+            EventType.AGENT_REMOVED, {"project_id": project_id, "agent_id": agent_id}
+        )
+        asyncio.create_task(ws_manager.broadcast_to_project(project_id, event))
 
     return {"message": "Agent removed from project"}

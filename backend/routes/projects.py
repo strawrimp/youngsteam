@@ -4,8 +4,19 @@ from typing import List
 from database import get_db
 from models.project import Project
 from schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from websocket.events import EventType, create_event
+from websocket.events import EventType, create_event
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
+
+# WebSocket manager (main.py에서 주입)
+ws_manager = None
+
+
+def set_ws_manager(manager):
+    """WebSocket manager 주입"""
+    global ws_manager
+    ws_manager = manager
 
 
 @router.post("/", response_model=ProjectResponse)
@@ -15,6 +26,21 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
+
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+
+        event = create_event(
+            EventType.PROJECT_CREATED,
+            {
+                "id": db_project.id,
+                "name": db_project.name,
+                "description": db_project.description,
+            },
+        )
+        asyncio.create_task(ws_manager.broadcast(event))
+
     return db_project
 
 
@@ -49,6 +75,21 @@ def update_project(
 
     db.commit()
     db.refresh(project)
+
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+
+        event = create_event(
+            EventType.PROJECT_UPDATED,
+            {
+                "id": project.id,
+                "name": project.name,
+                "description": project.description,
+            },
+        )
+        asyncio.create_task(ws_manager.broadcast(event))
+
     return project
 
 
@@ -61,5 +102,12 @@ def delete_project(project_id: str, db: Session = Depends(get_db)):
 
     db.delete(project)
     db.commit()
+
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+
+        event = create_event(EventType.PROJECT_DELETED, {"id": project_id})
+        asyncio.create_task(ws_manager.broadcast(event))
 
     return {"message": "Project deleted successfully", "id": project_id}

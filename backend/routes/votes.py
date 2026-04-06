@@ -6,8 +6,20 @@ from models.vote import Vote
 from models.discussion import Discussion
 from models.agent import Agent
 from schemas.vote import VoteCreate, VoteResponse
+from websocket.events import EventType, create_event
+
+import asyncio
 
 router = APIRouter(prefix="/api/votes", tags=["votes"])
+
+# WebSocket manager (main.py에서 주입)
+ws_manager = None
+
+
+def set_ws_manager(manager):
+    """WebSocket manager 주입"""
+    global ws_manager
+    ws_manager = manager
 
 
 @router.post("/", response_model=VoteResponse)
@@ -42,6 +54,22 @@ def create_vote(vote: VoteCreate, db: Session = Depends(get_db)):
     db.add(db_vote)
     db.commit()
     db.refresh(db_vote)
+
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        event = create_event(
+            EventType.VOTE_CAST,
+            {
+                "id": db_vote.id,
+                "discussion_id": db_vote.discussion_id,
+                "agent_id": db_vote.agent_id,
+                "choice": db_vote.choice,
+                "reasoning": db_vote.reasoning,
+            },
+        )
+        asyncio.create_task(
+            ws_manager.broadcast_to_project(discussion.project_id, event)
+        )
 
     return db_vote
 

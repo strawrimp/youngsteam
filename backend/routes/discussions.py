@@ -1,32 +1,43 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime
-from database import get_db
-from models.discussion import Discussion, DiscussionMessage
-from models.project import Project
-from schemas.discussion import (
-    DiscussionCreate,
-    DiscussionResponse,
-    DiscussionMessageCreate,
-    DiscussionMessageResponse,
-)
+ from websocket.events import EventType, create_event
 
 router = APIRouter(prefix="/api/discussions", tags=["discussions"])
+
+# WebSocket manager (main.py에서 주입)
+ws_manager = None
+
+
+def set_ws_manager(manager):
+    """WebSocket manager 주입"""
+    global ws_manager
+    ws_manager = manager
 
 
 @router.post("/", response_model=DiscussionResponse)
 def create_discussion(discussion: DiscussionCreate, db: Session = Depends(get_db)):
     """새 토론 생성"""
-    # 프로젝트 존재 확인
+    # 토론 존재 확인
     project = db.query(Project).filter(Project.id == discussion.project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-
+    
     db_discussion = Discussion(**discussion.model_dump())
     db.add(db_discussion)
     db.commit()
     db.refresh(db_discussion)
+    
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+        event = create_event(EventType.DISCUSSION_STARTED, {
+            "id": db_discussion.id,
+            "project_id": db_discussion.project_id,
+            "topic": db_discussion.topic
+        })
+        asyncio.create_task(ws_manager.broadcast_to_project(discussion.project_id, event))
+    
     return db_discussion
 
 
@@ -48,7 +59,9 @@ def get_discussion(discussion_id: str, db: Session = Depends(get_db)):
 
 @router.post("/{discussion_id}/messages", response_model=DiscussionMessageResponse)
 def create_discussion_message(
-    discussion_id: str, message: DiscussionMessageCreate, db: Session = Depends(get_db)
+    discussion_id: str,
+    message: DiscussionMessageCreate,
+    db: Session = Depends(get_db)
 ):
     """토론에 메시지 전송"""
     # 토론 존재 및 활성 상태 확인
@@ -57,13 +70,27 @@ def create_discussion_message(
         raise HTTPException(status_code=404, detail="Discussion not found")
     if discussion.status != "active":
         raise HTTPException(status_code=400, detail="Discussion is closed")
-
+    
     db_message = DiscussionMessage(
-        discussion_id=discussion_id, agent_id=message.agent_id, content=message.content
+        discussion_id=discussion_id,
+        agent_id=message.agent_id,
+        content=message.content
     )
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
+    
+    # WebSocket 이벤트 발행
+    if ws_manager:
+        import asyncio
+        event = create_event(EventType.DISCUSSION_MESSAGE, {
+            "id": db_message.id,
+            "discussion_id": db_message.discussion_id,
+            "agent_id": db_message.agent_id,
+            "content": db_message.content
+        })
+        asyncio.create_task(ws_manager.broadcast_to_project(discussion.project_id, event))
+    
     return db_message
 
 
