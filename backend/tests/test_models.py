@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import Base
 from models.project import Project
+from models.agent import Agent
 
 
 @pytest.fixture
@@ -34,3 +35,28 @@ def test_project_required_fields(db_session):
 
     with pytest.raises(Exception):
         db_session.commit()
+
+
+def test_agent_is_lead_field(db_session):
+    """Agent 모델에 is_lead 필드가 존재하는지 테스트"""
+    agent = Agent(
+        name="manager",
+        role="manager",
+        system_prompt="당신은 매니저입니다.",
+        is_lead=True,
+    )
+    db_session.add(agent)
+    db_session.commit()
+
+    assert agent.is_lead is True
+
+
+def test_agent_default_is_lead_false(db_session):
+    """is_lead 기본값이 False인지 테스트"""
+    agent = Agent(
+        name="developer", role="developer", system_prompt="당신은 개발자입니다."
+    )
+    db_session.add(agent)
+    db_session.commit()
+
+    assert agent.is_lead is False
