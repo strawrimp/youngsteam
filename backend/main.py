@@ -11,6 +11,7 @@ from database import init_db, get_db, SessionLocal
 from models.agent import Agent
 from models.conversation import Conversation
 from models.message import Message
+from models.team_settings import TeamSettings
 from sqlalchemy.orm import Session
 from engines.conversation_engine import ConversationEngine
 from engines.voting_engine import VotingEngine
@@ -59,8 +60,14 @@ async def lifespan(app: FastAPI):
             temperature=settings.deepseek_temperature,
             enable_hybrid=settings.deepseek_enable_hybrid,
         )
-        logger.info(f"✅ DeepSeek Service initialized (Hybrid: {settings.deepseek_enable_hybrid})")
-        logger.info(f"   API Key: {settings.deepseek_api_key[:10]}..." if settings.deepseek_api_key else "   API Key: NOT SET")
+        logger.info(
+            f"✅ DeepSeek Service initialized (Hybrid: {settings.deepseek_enable_hybrid})"
+        )
+        logger.info(
+            f"   API Key: {settings.deepseek_api_key[:10]}..."
+            if settings.deepseek_api_key
+            else "   API Key: NOT SET"
+        )
 
         # Keep GLM service for backward compatibility
         app.state.glm_service = GLMService()
@@ -73,7 +80,9 @@ async def lifespan(app: FastAPI):
             api_key=settings.deepseek_api_key,
             model=settings.deepseek_model,
         )
-        llm_provider_service.register_provider("deepseek", deepseek_provider, is_primary=True)
+        llm_provider_service.register_provider(
+            "deepseek", deepseek_provider, is_primary=True
+        )
         logger.info(f"✅ Registered LLM Provider: DeepSeek (Primary)")
 
         # Register OpenAI if available
@@ -110,10 +119,18 @@ async def lifespan(app: FastAPI):
 
         # Agent factory mapping
         agent_factories = {
-            "manager": lambda agent_id, name, service: ManagerAgent(agent_id, name, service),
-            "developer": lambda agent_id, name, service: DeveloperAgent(agent_id, name, service),
-            "designer": lambda agent_id, name, service: DesignerAgent(agent_id, name, service),
-            "researcher": lambda agent_id, name, service: ResearcherAgent(agent_id, name, service),
+            "manager": lambda agent_id, name, service: ManagerAgent(
+                agent_id, name, service
+            ),
+            "developer": lambda agent_id, name, service: DeveloperAgent(
+                agent_id, name, service
+            ),
+            "designer": lambda agent_id, name, service: DesignerAgent(
+                agent_id, name, service
+            ),
+            "researcher": lambda agent_id, name, service: ResearcherAgent(
+                agent_id, name, service
+            ),
         }
 
         for agent in agents:
@@ -123,15 +140,21 @@ async def lifespan(app: FastAPI):
 
             try:
                 factory = agent_factories[agent.role]
-                agent_instance = factory(str(agent.id), agent.name, app.state.deepseek_service)
-                app.state.conversation_engine.register_agent(str(agent.id), agent_instance)
+                agent_instance = factory(
+                    str(agent.id), agent.name, app.state.deepseek_service
+                )
+                app.state.conversation_engine.register_agent(
+                    str(agent.id), agent_instance
+                )
                 app.state.debate_engine.register_agent(str(agent.id), agent_instance)
                 logger.info(f"Registered agent: {agent.name} ({agent.role})")
             except Exception as e:
                 logger.error(f"Failed to register agent {agent.name}: {e}")
 
         db.close()
-        logger.info(f"Conversation engine initialized with {len(app.state.conversation_engine.agents)} agents")
+        logger.info(
+            f"Conversation engine initialized with {len(app.state.conversation_engine.agents)} agents"
+        )
 
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
@@ -158,6 +181,15 @@ app.add_middleware(
 )
 
 
+# Register new routes
+from routes import projects_router, agents_router, discussions_router, votes_router
+
+app.include_router(projects_router)
+app.include_router(agents_router)
+app.include_router(discussions_router)
+app.include_router(votes_router)
+
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
@@ -172,10 +204,10 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     logger.info(f"WebSocket client connected: {websocket.client}")
 
-    conversation_id = str(__import__('uuid').uuid4())
+    conversation_id = str(__import__("uuid").uuid4())
     engine = app.state.conversation_engine
     memory = app.state.memory_service
-    
+
     logger.info(f"Engine has {len(engine.agents)} agents")
 
     try:
@@ -196,11 +228,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 continue
 
             # Send processing notification
-            await websocket.send_json({
-                "type": "status",
-                "status": "processing",
-                "message": "에이전트들이 의견을 수집 중입니다...",
-            })
+            await websocket.send_json(
+                {
+                    "type": "status",
+                    "status": "processing",
+                    "message": "에이전트들이 의견을 수집 중입니다...",
+                }
+            )
 
             logger.info(f"Calling engine.process_message with: {user_message}")
 
@@ -208,24 +242,30 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 logger.info("About to call engine.process_message")
                 result = await engine.process_message(conversation_id, user_message)
-                logger.info(f"Engine returned with {len(result.get('agent_responses', {}))} responses")
+                logger.info(
+                    f"Engine returned with {len(result.get('agent_responses', {}))} responses"
+                )
 
                 logger.info(f"Engine returned result keys: {list(result.keys())}")
-                if result.get('agent_responses'):
-                    logger.info(f"Agent response keys: {list(result.get('agent_responses', {}).keys())}")
+                if result.get("agent_responses"):
+                    logger.info(
+                        f"Agent response keys: {list(result.get('agent_responses', {}).keys())}"
+                    )
 
                 # Send agent responses
                 for agent_id, response in result.get("agent_responses", {}).items():
                     agent = engine.agents.get(agent_id)
                     agent_name = agent.name if agent else agent_id
 
-                    await websocket.send_json({
-                        "type": "agent_response",
-                        "agent_id": agent_id,
-                        "agent_name": agent_name,
-                        "content": response,
-                        "timestamp": result["timestamp"],
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "agent_response",
+                            "agent_id": agent_id,
+                            "agent_name": agent_name,
+                            "content": response,
+                            "timestamp": result["timestamp"],
+                        }
+                    )
 
                 # Save to memory
                 await memory.save_memory(
@@ -235,18 +275,22 @@ async def websocket_endpoint(websocket: WebSocket):
                 )
 
                 # Send completion status
-                await websocket.send_json({
-                    "type": "status",
-                    "status": "complete",
-                    "message": "✓ 모든 에이전트가 응답했습니다.",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "status",
+                        "status": "complete",
+                        "message": "✓ 모든 에이전트가 응답했습니다.",
+                    }
+                )
 
             except Exception as e:
                 logger.error(f"Error processing message: {e}")
-                await websocket.send_json({
-                    "type": "error",
-                    "error": str(e),
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "error": str(e),
+                    }
+                )
 
     except Exception as e:
         logger.error(f"WebSocket error: {type(e).__name__}: {e}")
@@ -260,29 +304,26 @@ async def send_message(request_data: dict = None, db: Session = Depends(get_db))
     """Send a message to agents."""
     try:
         content = request_data.get("content", "") if request_data else ""
-        
+
         engine = app.state.conversation_engine
         logger.info(f"Testing with {len(engine.agents)} agents")
-        
+
         agent_ids = list(engine.agents.keys())
         if agent_ids:
             agent_id = agent_ids[0]
             agent = engine.agents[agent_id]
             logger.info(f"Calling agent {agent.name} directly")
-            
+
             response = await agent.respond(content)
             logger.info(f"Agent responded: {response[:100]}...")
-            
-            return {
-                "status": "ok",
-                "agent": agent.name,
-                "response": response
-            }
-        
+
+            return {"status": "ok", "agent": agent.name, "response": response}
+
         return {"status": "error", "message": "No agents registered"}
     except Exception as e:
         logger.error(f"Error: {e}")
         import traceback
+
         logger.error(traceback.format_exc())
         return {"status": "error", "message": str(e)}
 
@@ -292,7 +333,22 @@ async def send_message(request_data: dict = None, db: Session = Depends(get_db))
 async def list_agents(db: Session = Depends(get_db)):
     """List all agents."""
     agents = db.query(Agent).all()
-    return {"agents": [{"id": str(a.id), "name": a.name, "role": a.role} for a in agents]}
+    return {
+        "agents": [
+            {
+                "id": str(a.id),
+                "name": a.name,
+                "role": a.role,
+                "display_name": a.display_name,
+                "emoji": a.emoji,
+                "badge_text": a.badge_text,
+                "icon": a.icon,
+                "color": a.color,
+                "status": a.status,
+            }
+            for a in agents
+        ]
+    }
 
 
 # REST API endpoints for memory
@@ -313,7 +369,7 @@ async def start_voting(request_data: dict, db: Session = Depends(get_db)):
     if not topic or not candidates:
         return {"error": "Missing topic or candidates"}, 400
 
-    voting_id = str(__import__('uuid').uuid4())
+    voting_id = str(__import__("uuid").uuid4())
     engine = app.state.conversation_engine
 
     result = await engine.start_voting(conversation_id, topic, candidates)
@@ -342,7 +398,7 @@ async def get_model_usage_stats():
             "v4": "DeepSeek V4 - Fast, cost-effective for standard tasks",
             "r1": "DeepSeek R1 - Advanced reasoning for complex tasks (voting, strategy, analysis)",
             "hybrid_selection": "Automatic based on task type and complexity",
-        }
+        },
     }
 
 
@@ -434,6 +490,186 @@ async def get_llm_stats():
             "success_rate": "Success rate (0.0 - 1.0)",
             "avg_latency_ms": "Average latency in milliseconds",
         },
+    }
+
+
+# ==================== Archive API ====================
+
+
+@app.get("/api/archive/conversations")
+async def list_archived_conversations(
+    limit: int = 50, offset: int = 0, db: Session = Depends(get_db)
+):
+    """List archived conversations with pagination."""
+    total = db.query(Conversation).count()
+    conversations = (
+        db.query(Conversation)
+        .order_by(Conversation.started_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+
+    return {
+        "status": "ok",
+        "conversations": [
+            {
+                "id": str(c.id),
+                "title": c.title or "제목 없는 대화",
+                "started_at": c.started_at.isoformat() if c.started_at else None,
+                "ended_at": c.ended_at.isoformat() if c.ended_at else None,
+                "message_count": db.query(Message)
+                .filter(Message.conversation_id == c.id)
+                .count(),
+            }
+            for c in conversations
+        ],
+        "total": total,
+    }
+
+
+@app.get("/api/archive/conversations/{conversation_id}")
+async def get_conversation_detail(conversation_id: str, db: Session = Depends(get_db)):
+    """Get detailed conversation with messages."""
+    conversation = (
+        db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    )
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    messages = (
+        db.query(Message)
+        .filter(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at)
+        .all()
+    )
+
+    messages_data = []
+    for msg in messages:
+        agent = (
+            db.query(Agent).filter(Agent.id == msg.agent_id).first()
+            if msg.agent_id
+            else None
+        )
+        messages_data.append(
+            {
+                "id": str(msg.id),
+                "agent_id": str(msg.agent_id) if msg.agent_id else None,
+                "agent_name": agent.display_name if agent else None,
+                "content": msg.content,
+                "created_at": msg.created_at.isoformat() if msg.created_at else None,
+                "sender_type": msg.sender_type,
+                "type": msg.message_type,
+            }
+        )
+
+    return {
+        "status": "ok",
+        "conversation": {
+            "id": str(conversation.id),
+            "title": conversation.title or "제목 없는 대화",
+            "started_at": conversation.started_at.isoformat()
+            if conversation.started_at
+            else None,
+            "ended_at": conversation.ended_at.isoformat()
+            if conversation.ended_at
+            else None,
+            "messages": messages_data,
+        },
+    }
+
+
+@app.get("/api/archive/search")
+async def search_conversations(q: str, limit: int = 20, db: Session = Depends(get_db)):
+    """Search conversations by content."""
+    if len(q) < 2:
+        return {"status": "ok", "query": q, "conversations": [], "count": 0}
+
+    search_term = f"%{q}%"
+    messages = (
+        db.query(Message)
+        .filter(Message.content.ilike(search_term))
+        .limit(limit * 5)
+        .all()
+    )
+
+    conv_ids = list(set([m.conversation_id for m in messages]))
+    conversations = []
+    for conv_id in conv_ids[:limit]:
+        conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+        if conv:
+            conversations.append(
+                {
+                    "id": str(conv.id),
+                    "title": conv.title or "제목 없는 대화",
+                    "started_at": conv.started_at.isoformat()
+                    if conv.started_at
+                    else None,
+                    "ended_at": conv.ended_at.isoformat() if conv.ended_at else None,
+                    "message_count": db.query(Message)
+                    .filter(Message.conversation_id == conv.id)
+                    .count(),
+                }
+            )
+
+    return {
+        "status": "ok",
+        "query": q,
+        "conversations": conversations,
+        "count": len(conversations),
+    }
+
+
+@app.delete("/api/archive/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, db: Session = Depends(get_db)):
+    """Delete a conversation and its messages."""
+    conversation = (
+        db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    )
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return {"status": "ok", "message": f"Conversation {conversation_id} deleted"}
+
+
+# Team Settings API
+@app.get("/api/settings/team")
+async def get_team_settings(db: Session = Depends(get_db)):
+    """Get team settings."""
+    settings = db.query(TeamSettings).first()
+    if not settings:
+        # Return default settings
+        return {
+            "team_name": "Young's Team",
+            "team_subtitle": "AI Agents Online",
+            "team_icon": "terminal",
+        }
+    return {
+        "team_name": settings.team_name,
+        "team_subtitle": settings.team_subtitle,
+        "team_icon": settings.team_icon,
+    }
+
+
+@app.put("/api/settings/team")
+async def update_team_settings(data: dict, db: Session = Depends(get_db)):
+    """Update team settings."""
+    settings = db.query(TeamSettings).first()
+    if not settings:
+        # Create new settings
+        settings = TeamSettings(**data)
+        db.add(settings)
+    else:
+        # Update existing settings
+        for key, value in data.items():
+            setattr(settings, key, value)
+    db.commit()
+    db.refresh(settings)
+    return {
+        "team_name": settings.team_name,
+        "team_subtitle": settings.team_subtitle,
+        "team_icon": settings.team_icon,
     }
 
 
