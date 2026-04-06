@@ -4,13 +4,17 @@ from database import Base
 
 
 class Vote(Base):
-    """Vote cast by an agent."""
+    """Vote cast by an agent in a discussion."""
 
     __tablename__ = "votes"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    decision_id = Column(String(36), ForeignKey("decisions.id", ondelete="CASCADE"), nullable=False)
-    agent_id = Column(String(36), ForeignKey("agents.id", ondelete="CASCADE"), nullable=False)
+    discussion_id = Column(
+        String(36), ForeignKey("discussions.id", ondelete="CASCADE"), nullable=False
+    )
+    agent_id = Column(
+        String(36), ForeignKey("agents.id", ondelete="CASCADE"), nullable=False
+    )
     choice = Column(String, nullable=False)
     reasoning = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())

@@ -8,6 +8,7 @@ from models.project_agent import ProjectAgent
 from models.message import Message
 from models.conversation import Conversation
 from models.discussion import Discussion, DiscussionMessage
+from models.vote import Vote
 
 
 @pytest.fixture
@@ -171,3 +172,33 @@ def test_discussion_message(db_session):
 
     assert message.id is not None
     assert message.discussion_id == discussion.id
+
+
+def test_vote_with_discussion(db_session):
+    """Vote가 discussion_id를 참조하는지 테스트"""
+    project = Project(name="투표 테스트")
+    agent = Agent(
+        name="manager",
+        role="manager",
+        system_prompt="당신은 매니저입니다.",
+        is_lead=True,
+    )
+    db_session.add_all([project, agent])
+    db_session.commit()
+
+    discussion = Discussion(project_id=project.id, topic="투표 대상")
+    db_session.add(discussion)
+    db_session.commit()
+
+    vote = Vote(
+        discussion_id=discussion.id,
+        agent_id=agent.id,
+        choice="React",
+        reasoning="성숙한 생태계와 풍부한 라이브러리",
+    )
+    db_session.add(vote)
+    db_session.commit()
+
+    assert vote.id is not None
+    assert vote.discussion_id == discussion.id
+    assert vote.choice == "React"
