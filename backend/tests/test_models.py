@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from database import Base
 from models.project import Project
 from models.agent import Agent
+from models.project_agent import ProjectAgent
 
 
 @pytest.fixture
@@ -60,3 +61,51 @@ def test_agent_default_is_lead_false(db_session):
     db_session.commit()
 
     assert agent.is_lead is False
+
+
+def test_project_agent_binding(db_session):
+    """프로젝트-에이전트 바인딩 생성 테스트"""
+    # 에이전트 생성
+    agent = Agent(
+        name="manager",
+        role="manager",
+        system_prompt="당신은 매니저입니다.",
+        is_lead=True,
+    )
+    db_session.add(agent)
+
+    # 프로젝트 생성
+    project = Project(name="테스트 프로젝트")
+    db_session.add(project)
+    db_session.commit()
+
+    # 바인딩 생성
+    binding = ProjectAgent(project_id=project.id, agent_id=agent.id, is_lead=True)
+    db_session.add(binding)
+    db_session.commit()
+
+    assert binding.id is not None
+    assert binding.is_lead is True
+    assert binding.project_id == project.id
+    assert binding.agent_id == agent.id
+
+
+def test_unique_project_agent_constraint(db_session):
+    """동일한 프로젝트에 동일한 에이전트 중복 바인딩 방지 테스트"""
+    agent = Agent(
+        name="developer", role="developer", system_prompt="당신은 개발자입니다."
+    )
+    project = Project(name="중복 테스트")
+    db_session.add_all([agent, project])
+    db_session.commit()
+
+    binding1 = ProjectAgent(project_id=project.id, agent_id=agent.id)
+    db_session.add(binding1)
+    db_session.commit()
+
+    # 동일한 바인딩 재시도
+    binding2 = ProjectAgent(project_id=project.id, agent_id=agent.id)
+    db_session.add(binding2)
+
+    with pytest.raises(Exception):  # UNIQUE 제약 위반
+        db_session.commit()
