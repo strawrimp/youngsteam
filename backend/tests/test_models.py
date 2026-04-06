@@ -7,6 +7,7 @@ from models.agent import Agent
 from models.project_agent import ProjectAgent
 from models.message import Message
 from models.conversation import Conversation
+from models.discussion import Discussion, DiscussionMessage
 
 
 @pytest.fixture
@@ -132,3 +133,41 @@ def test_message_with_project_id(db_session):
     db_session.commit()
 
     assert message.project_id == project.id
+
+
+def test_discussion_creation(db_session):
+    """Discussion 모델이 정상적으로 생성되는지 테스트"""
+    project = Project(name="토론 테스트")
+    db_session.add(project)
+    db_session.commit()
+
+    discussion = Discussion(project_id=project.id, topic="UI 프레임워크 선정")
+    db_session.add(discussion)
+    db_session.commit()
+
+    assert discussion.id is not None
+    assert discussion.status == "active"
+    assert discussion.topic == "UI 프레임워크 선정"
+
+
+def test_discussion_message(db_session):
+    """DiscussionMessage가 정상적으로 생성되는지 테스트"""
+    project = Project(name="토론 메시지 테스트")
+    agent = Agent(
+        name="developer", role="developer", system_prompt="당신은 개발자입니다."
+    )
+    db_session.add_all([project, agent])
+    db_session.commit()
+
+    discussion = Discussion(project_id=project.id, topic="테스트 토론")
+    db_session.add(discussion)
+    db_session.commit()
+
+    message = DiscussionMessage(
+        discussion_id=discussion.id, agent_id=agent.id, content="React를 제안합니다."
+    )
+    db_session.add(message)
+    db_session.commit()
+
+    assert message.id is not None
+    assert message.discussion_id == discussion.id
