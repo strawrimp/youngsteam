@@ -67,8 +67,9 @@ export function getAgentConfig(
     
     if (agent) {
       // Lucide/PascalCase icon names (UserCog, Code, Palette, Search) are not Material Symbols.
-      // Detect and fall back to Material Symbols defaults.
-      const isLucideIcon = (str: string) => /^[A-Z][a-z]+[A-Z]/.test(str);
+      // Material Symbols uses all-lowercase ligature names. Any name starting with
+      // an uppercase letter is treated as a non-Material-Symbol name.
+      const isLucideIcon = (str: string) => /^[A-Z]/.test(str);
       
       const displayName = agent.display_name 
         && !isLucideIcon(agent.display_name)

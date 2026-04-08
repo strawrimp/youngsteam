@@ -98,7 +98,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               `}
             >
               <span 
-                className={`material-symbols-outlined ${getIconColorClass(agent.role, isActive)}`}
+                className={`material-symbols-outlined text-xl ${getIconColorClass(agent.role, isActive)}`}
+                style={{ fontVariationSettings: '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24' }}
               >
                 {config.icon}
               </span>
