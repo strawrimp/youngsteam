@@ -1,5 +1,15 @@
 import { create } from 'zustand';
-import { Agent, Message, VotingResult, ModelStats, AgentResponse } from './types';
+import { 
+  Agent, 
+  Message, 
+  VotingResult, 
+  ModelStats, 
+  AgentResponse, 
+  ArchivedConversation, 
+  ConversationDetail, 
+  TeamSettings,
+  InviteSuggestion
+} from './types';
 
 interface ConversationStore {
   // Conversation state
@@ -24,6 +34,21 @@ interface ConversationStore {
   // Model stats
   modelStats: ModelStats | null;
 
+  // Archive state
+  activeTab: 'dashboard' | 'archive' | 'settings';
+  archiveConversations: ArchivedConversation[];
+  selectedConversation: ConversationDetail | null;
+  searchQuery: string;
+  isArchiveLoading: boolean;
+
+  // Team settings
+  teamSettings: TeamSettings | null;
+
+  // Invite system state
+  inviteSuggestions: InviteSuggestion[];
+  isInviteModalOpen: boolean;
+  pendingInvites: InviteSuggestion[];
+
   // Actions
   setConversationId: (id: string) => void;
   addMessage: (message: Message) => void;
@@ -42,6 +67,21 @@ interface ConversationStore {
   setIsVoting: (isVoting: boolean) => void;
 
   setModelStats: (stats: ModelStats) => void;
+
+  // Archive actions
+  setActiveTab: (tab: 'dashboard' | 'archive' | 'settings') => void;
+  setArchiveConversations: (conversations: ArchivedConversation[]) => void;
+  setSelectedConversation: (conversation: ConversationDetail | null) => void;
+  setSearchQuery: (query: string) => void;
+  setArchiveLoading: (loading: boolean) => void;
+
+  // Team settings actions
+  setTeamSettings: (settings: TeamSettings) => void;
+
+  // Invite actions
+  addPendingInvite: (invite: InviteSuggestion) => void;
+  removePendingInvite: (agentId: string) => void;
+  clearPendingInvites: () => void;
 }
 
 export const useConversationStore = create<ConversationStore>((set) => ({
@@ -62,6 +102,21 @@ export const useConversationStore = create<ConversationStore>((set) => ({
   isVoting: false,
 
   modelStats: null,
+
+  // Archive state
+  activeTab: 'dashboard',
+  archiveConversations: [],
+  selectedConversation: null,
+  searchQuery: '',
+  archiveLoading: false,
+
+  // Team settings
+  teamSettings: null,
+
+  // Invite state
+  inviteSuggestions: [],
+  isInviteModalOpen: false,
+  pendingInvites: [],
 
   // Actions
   setConversationId: (id: string) => set({ conversationId: id }),
@@ -90,4 +145,32 @@ export const useConversationStore = create<ConversationStore>((set) => ({
   setIsVoting: (isVoting: boolean) => set({ isVoting }),
 
   setModelStats: (stats: ModelStats) => set({ modelStats: stats }),
+
+  // Archive actions
+  setActiveTab: (tab: 'dashboard' | 'archive' | 'settings') => set({ activeTab: tab }),
+  setArchiveConversations: (conversations: ArchivedConversation[]) => 
+    set({ archiveConversations: conversations }),
+  setSelectedConversation: (conversation: ConversationDetail | null) => 
+    set({ selectedConversation: conversation }),
+  setSearchQuery: (query: string) => set({ searchQuery: query }),
+  setArchiveLoading: (loading: boolean) => set({ archiveLoading: loading }),
+
+  // Team settings actions
+  setTeamSettings: (settings: TeamSettings) => set({ teamSettings: settings }),
+
+  // Invite actions
+  addPendingInvite: (invite: InviteSuggestion) =>
+    set((state) => ({
+      pendingInvites: [...state.pendingInvites, invite],
+    })),
+  removePendingInvite: (agentId: string) =>
+    set((state) => ({
+      pendingInvites: state.pendingInvites.filter((i) => i.agent_id !== agentId),
+    })),
+  clearPendingInvites: () => set({ pendingInvites: [] }),
 }));
+
+// Expose store to window for dev/demo injection
+if (typeof window !== 'undefined') {
+  (window as any).__conversationStore = useConversationStore;
+}
