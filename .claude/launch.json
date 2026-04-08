@@ -2,9 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "backend-dev",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--reload", "--port", "8000"],
+      "cwd": "backend",
+      "port": 8000
+    },
+    {
       "name": "frontend-dev",
-      "runtimeExecutable": "/Users/maegmini/.bun/bin/bun",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeArgs": ["node_modules/.bin/vite"],
       "cwd": "frontend",
       "port": 5173
     }

@@ -1,37 +1,32 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 2026-04-08
 
-## [0.1.0] - 2026-04-02
+### 수정 사항
 
-### Added (Design & Accessibility)
-- WCAG AA accessibility compliance: Touch targets increased to 44px minimum (FINDING-001)
-- Custom typography: Poppins font family for headers and UI elements (FINDING-002)
-- Enhanced interaction states: Button hover effects, tab active states, smooth transitions (FINDING-007)
-- Global focus rings: Keyboard navigation support with visible 2px blue outline (FINDING-002)
-- Left accent bar: Increased from 3px to 6px for better visual hierarchy (FINDING-003)
-- Empty state copy: Improved microcopy for better user guidance (FINDING-004)
-- Color-coded agent indicators: Visual distinction for Manager, Developer, Designer, Researcher roles
+#### 수정된 파일
+1. **frontend/src/components/Header.tsx** (수정됨)
+   - Line 6: activeTab 타입 업데이: 'settings' 추가 (기존에 'dashboard', 'archive' 옅션 7: onTabChange 타입에 'settings' 추가
+   - Line 149-155: 설정 버튼에 onClick 핸들러 추가하여 설정 패넌로 표시
 
-### Frontend Structure
-- React 18 + TypeScript with Vite dev server
-- 3-column grid layout: Agent panel (left) | Chat window (center) | Voting panel (right)
-- Responsive design: Breakpoints at 640px (mobile), 900px (tablet), 1200px (desktop)
-- Zustand state management for conversation and agent state
-- WebSocket integration for real-time updates
+#### 테스트 결과
+**Chrome 브라우저에서 테스트한 결과**:
+- ✅ 설정 버튼 클릭 → AdminSettings 컴포넌트 표시
+- ✅ "← 대시보드로 돌아가기" 버튼 클릭 → 대시보드 표시
 
-### Backend Foundation
-- FastAPI server with WebSocket support
-- PostgreSQL database schema for agents, conversations, messages, shared_memory, decisions, votes
-- Async/await patterns for concurrent agent processing
-- Agent manager with 4 specialized agents (manager, developer, designer, researcher)
+- ✅ 팀 설정 편집 폼 정상 작동 (팀 이름, 부제목, 아이콘 변경)
+- ✅ 에이전트 관리 (4명의 에이전트 추가/수정/삭제)
+- ✅ 색상 선택 (6가지 옶 클릭)
+    - ✅ 이모지 피커 (이모지 선택 시 표시)
+    - ✅ 저장/삭제 버튼 작동
+    - ✅ 시스템 정보 (연결된 에이전트: 4명, LLM: DeepSeek (Hybrid), DB: SQLite)
 
-### Known Limitations
-- Backend agents not yet connected to frontend (WebSocket integration in progress)
-- Image generation and analysis not yet implemented (Phase 4)
-- Desktop-only responsive design (mobile layout deferred)
-- Focus on visual polish; core multi-agent logic in development
+- ✅ "← 대시보드로 돌아가기" 버튼으로 대시보드로 복귀 확인
 
----
+#### 추가 개선 사항
+1. **알림 버튼 기능 구현**: 알림 버튼도 decorative 상태이지만, 설정/지원/계정 버튼도 추가 onClick 핸들러가 필요합니다.
 
-For details on accessibility implementation, see the design audit findings in `.gstack/design-audit-report.md`.
+2. **AdminSettings UI 개선**: 더 직관적인 레이아웃,, 색상 선택 등의 UI/UX 개선
+- 이모지 피커 컴포넌트 위치 조정
+- 색상 선택 UI를 퍼 쉽게 만- AdminSettings 컴포넌트에서 "← 대시보드로 돌아가기" 버튼을 배너 오른쪽 상단에 고정
+    - 좌츠텍스트 읽을 수 있

@@ -8,24 +8,28 @@
 - **4명의 에이전트**: Manager (CEO), Developer, Designer, Researcher
 - **동기적 협력**: 에이전트들이 동시에 정보를 처리하고 의견 교환
 - **투표 기반 의견 수렴**: 모든 에이전트의 의견이 동등하게 평가됨
-- **공유 메모리 시스템**: 모든 에이전트가 같은 컨텍스트를 유지
+- **개별 메모리 시스템**: 각 에이전트가 독립된 메모리 유지
 - **실시간 WebSocket 통신**: 웹 인터페이스에서 실시간으로 진행 상황 확인
+- **하이브리드 초대 시스템**: 선임에이전트 자동 제안 + @멘션 수동 초대
 
 ### 사용성 & 접근성
 - **WCAG AA 준수**: 44px 이상 터치 타겟, 키보드 네비게이션, 포커스 표시
-- **사용자 정의 타이포그래피**: Poppins 폰트 적용으로 헤더 가독성 향상
-- **향상된 상호작용 피드백**: 버튼 호버 상태, 탭 액티브 상태, 부드러운 전환 애니메이션
-- **다크 모드 지원 준비**: CSS 변수 기반 색상 시스템으로 향후 테마 지원
+- **다크 모드 완전 지원**: 모든 컴포넌트에 다크/라이트 테마 적용
+- **반응형 디자인**: 모바일/태블릿/데스크톱 레이아웃 최적화
+- **Glassmorphism 스타일**: 반투명 배경, 흐림 효과
+- **부드러운 애니메이션**: 페이드, 슬라이드, 호버 효과
 
 ## 기술 스택
 
 | 계층 | 기술 |
 |------|------|
-| **백엔드** | Python 3.11+ + FastAPI |
-| **프론트엔드** | React 18+ + TypeScript |
-| **데이터베이스** | PostgreSQL 14+ |
-| **AI 모델** | GLM (Zhipu AI) |
+| **백엔드** | Python 3.14+ + FastAPI |
+| **프론트엔드** | React 18+ + TypeScript + Vite |
+| **데이터베이스** | SQLite (개발) / PostgreSQL (프로덕션) |
+| **AI 모델** | DeepSeek V4/R1 + Gemini 2.5 Flash + Ollama (폴백) |
 | **통신** | WebSocket + REST API |
+| **상태 관리** | Zustand |
+| **스타일** | Tailwind CSS + CSS Variables |
 
 ## 프로젝트 구조
 
@@ -102,35 +106,35 @@ python scripts/glm_spike.py
 
 ## 개발 로드맵
 
-### Phase 1: 기본 인프라 (완료 예정)
+### Phase 1: 기본 인프라 ✅ 완료
 - [x] FastAPI 서버 셋업
-- [x] PostgreSQL 데이터베이스 및 ORM 모델
+- [x] SQLite 데이터베이스 및 ORM 모델
 - [x] React 기본 구조 + ChatWindow 컴포넌트
 - [x] WebSocket 연결 구현
-- [ ] echo 테스트 검증
-- [ ] GLM 멀티에이전트 스파이크 테스트
 
-### Phase 2: 단일 에이전트 시스템
-- BaseAgent + Manager/Developer 구현
-- GLMService 완성
-- ConversationEngine 구현
-- MemoryService 구현
+### Phase 2: 에이전트 시스템 ✅ 완료
+- [x] BaseAgent + Manager/Developer/Designer/Researcher 구현
+- [x] DeepSeek + Gemini API 통합
+- [x] MemoryService 구현 (개별 에이전트 메모리)
+- [x] agents.yaml 기반 동적 등록
 
-### Phase 3: 토론 엔진 및 투표
-- Researcher, Designer 에이전트 추가
-- VotingEngine 구현
-- DiscussionEngine 구현
-- VotingInterface 컴포넌트
+### Phase 3: 협업 시스템 ✅ 완료
+- [x] 하이브리드 초대 시스템 (자동 제안 + @멘션)
+- [x] 사이드 토론 패널
+- [x] 투표 엔진 (VotingEngine)
+- [x] DiscussionPanel 컴포넌트
 
-### Phase 4: 이미지 처리
-- ImageService 구현
-- Designer Agent에 이미지 기능 추가
-- ImageInput/Output 컴포넌트
+### Phase 4: UI/UX 고도화 ✅ 완료 (2026-04-07)
+- [x] Glassmorphism 스타일 적용
+- [x] 애니메이션 효과 (animations.css)
+- [x] 다크 모드 완성 (useTheme 훅)
+- [x] 반응형 디자인 (MobileSidebar)
 
-### Phase 5: UI 고도화
-- 스타일링 및 반응형 디자인
-- 성능 최적화
-- 에러 처리 및 로깅
+### Phase 5: 테스트 및 최적화 🔄 진행 중
+- [x] 백엔드 테스트 (39 통과, 6 실패)
+- [ ] 프론트엔드 E2E 테스트
+- [ ] 성능 최적화
+- [x] 문서화
 
 ## API 엔드포인트 (Phase 1)
 
