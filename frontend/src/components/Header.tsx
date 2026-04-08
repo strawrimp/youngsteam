@@ -139,13 +139,6 @@ const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
-          <button className={`transition-colors ${
-            isDark 
-              ? 'text-slate-400 hover:text-slate-200' 
-              : 'text-slate-400 hover:text-primary'
-          }`}>
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
           <button
             onClick={() => onTabChange?.('settings')}
             className={`transition-colors ${
