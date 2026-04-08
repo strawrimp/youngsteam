@@ -15,6 +15,12 @@ class EventType(str, Enum):
     AGENT_INVITED = "agent_invited"
     AGENT_REMOVED = "agent_removed"
 
+    # Invite events (Phase 3A - 하이브리드 초대 시스템)
+    INVITE_SUGGESTED = "invite_suggested"  # 선임에이전트가 초대 제안
+    INVITE_ACCEPTED = "invite_accepted"  # 사용자가 초대 승인
+    INVITE_REJECTED = "invite_rejected"  # 사용자가 초대 거부
+    AGENT_MENTIONED = "agent_mentioned"  # @멘션으로 에이전트 호출
+
     # Discussion events
     DISCUSSION_STARTED = "discussion_started"
     DISCUSSION_MESSAGE = "discussion_message"
