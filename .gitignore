@@ -39,3 +39,23 @@ frontend/npm-debug.log
 # Worktrees
 .worktrees/
 worktrees/
+
+# Temp/build artifacts
+backend/backend.log
+backend/echo
+frontend/head
+frontend/postcss.config.cjs.bak
+stitch.zip
+stitch-extracted/
+.superpowers/
+*.bak
+
+# Working documents (not source-controlled)
+plan.md
+context.md
+checklist.md
+FINAL-SYSTEM-VALIDATION.md
+FINAL_REPORT.md
+NETWORK-ACCESS-GUIDE.md
+PHASE3-INTEGRATION-TEST-REPORT.md
+TEST_REPORT.md
