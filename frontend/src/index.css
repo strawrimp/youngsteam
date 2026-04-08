@@ -105,39 +105,6 @@
   }
 }
 
-/* ==================== Input Text Visibility Safety Net ==================== */
-/* These rules are OUTSIDE @layer to ensure they have proper cascade precedence.
-   They act as a fallback when CDN Tailwind fails to generate utility classes. */
-
-input[type="text"],
-input[type="search"],
-input[type="email"],
-input[type="password"],
-textarea {
-  color: var(--color-text-primary, #1A202C);
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-html.dark input[type="text"],
-html.dark input[type="search"],
-html.dark input[type="email"],
-html.dark input[type="password"],
-html.dark textarea {
-  color: var(--color-text-primary, #f1f5f9);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--color-text-tertiary, #a0aec0);
-  opacity: 1;
-}
-
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-  color: var(--color-text-tertiary, #94a3b8);
-}
-
 /* ==================== Utility Classes ==================== */
 
 @layer utilities {
