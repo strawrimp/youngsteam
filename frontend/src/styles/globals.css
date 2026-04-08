@@ -1,423 +1,176 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind CSS loaded via CDN in index.html */
 
-/* Base styles for semantic HTML */
-@layer base {
-  /* Typography defaults */
-  html {
-    @apply text-neutral-900;
-    scroll-behavior: smooth;
-    background-color: white !important;
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
+/* Base styles */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
-  body {
-    @apply bg-white text-neutral-900;
-    background-color: white !important;
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
+html {
+  scroll-behavior: smooth;
+  background-color: white;
+  color: #111827;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
 
-  #root {
-    background-color: white !important;
-  }
+body {
+  background-color: white;
+  color: #111827;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
 
-  h1 {
-    @apply text-3xl font-semibold;
-  }
+#root {
+  background-color: white;
+}
 
-  h2 {
-    @apply text-2xl font-semibold;
-  }
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+}
 
-  h3 {
-    @apply text-xl font-semibold;
-  }
+h1 { font-size: 1.875rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.125rem; }
+p { font-size: 1rem; line-height: 1.5; }
 
-  h4 {
-    @apply text-lg font-semibold;
-  }
+a {
+  color: #4E7EBE;
+  text-decoration: underline;
+  transition: color 150ms;
+}
 
-  p {
-    @apply text-base leading-normal;
-  }
+a:hover {
+  color: #3d5f99;
+}
 
-  a {
-    @apply text-agent-manager underline transition-colors duration-150;
-  }
+/* Main layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: white;
+}
 
-  a:hover {
-    @apply no-underline;
-  }
+.app-header {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  padding: 16px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
-  /* Focus visible for keyboard navigation */
-  :focus-visible {
-    @apply outline-2 outline-offset-2;
-  }
+.app-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.25;
+}
 
-  button:focus-visible {
-    @apply outline-agent-manager;
-  }
+.app-header p {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  font-weight: normal;
+  margin: 4px 0 0 0;
+}
 
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible {
-    @apply outline-agent-manager outline-2 outline-offset-2;
-  }
+.app-main {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  background-color: #ffffff;
+}
 
-  /* Placeholder text */
-  ::placeholder {
-    @apply text-neutral-600;
-  }
+.app-sidebar-left {
+  height: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  background-color: white;
+  border-right: 1px solid #d1d5db;
+  scrollbar-width: thin;
+}
 
-  /* Selection colors */
-  ::selection {
-    @apply bg-agent-manager text-white;
+.app-center {
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background-color: white;
+}
+
+.app-sidebar-right {
+  height: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  background-color: white;
+  border-left: 1px solid #d1d5db;
+  scrollbar-width: thin;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .app-main {
+    grid-template-columns: 250px 1fr 280px;
   }
 }
 
-/* Layout components */
-@layer components {
+@media (max-width: 900px) {
+  .app-main {
+    grid-template-columns: 200px 1fr 240px;
+    font-size: 0.875rem;
+  }
+
+  .app-sidebar-left, .app-sidebar-right {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
   .app-container {
-    @apply flex flex-col h-screen w-full bg-white;
-  }
-
-  .app-header {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    @apply text-white px-2xl py-md border-b border-neutral-200 flex-shrink-0 shadow-sm;
-  }
-
-  .app-header h1 {
-    @apply text-xl font-600 m-0 leading-tight;
-  }
-
-  .app-header p {
-    @apply text-xs opacity-75 font-normal mt-xs m-0;
+    height: auto;
   }
 
   .app-main {
-    display: grid;
-    grid-template-columns: 280px 1fr 300px;
-    flex: 1;
-    min-height: 0;
-    gap: 0;
-    background-color: #ffffff;
+    grid-template-columns: 1fr;
   }
 
-  .app-sidebar-left {
-    @apply h-full min-w-0 overflow-y-auto bg-white border-r border-neutral-300;
-    scrollbar-width: thin;
-  }
-
-  .app-center {
-    @apply h-full min-w-0 overflow-hidden bg-white;
-  }
-
-  .app-sidebar-right {
-    @apply h-full min-w-0 overflow-y-auto bg-white border-l border-neutral-300;
-    scrollbar-width: thin;
-  }
-
-  @media (max-width: 1200px) {
-    .app-main {
-      @apply grid-cols-[250px_1fr_280px];
-    }
-  }
-
-  @media (max-width: 900px) {
-    .app-main {
-      @apply grid-cols-[200px_1fr_240px] text-sm;
-    }
-
-    .app-sidebar-left,
-    .app-sidebar-right {
-      @apply text-xs;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .app-container {
-      @apply h-auto;
-    }
-
-    .app-main {
-      @apply grid-cols-1;
-    }
-
-    .app-sidebar-left,
-    .app-sidebar-right {
-      @apply hidden;
-    }
-
-    .app-header {
-      @apply px-lg py-md;
-    }
-
-    .app-header h1 {
-      @apply text-xl;
-    }
+  .app-sidebar-left, .app-sidebar-right {
+    display: none;
   }
 }
 
-/* Component styles */
-@layer components {
-  /* Buttons */
-  .btn {
-    @apply inline-flex items-center justify-center px-lg py-md rounded-md font-sm font-semibold transition-all duration-300 cursor-pointer whitespace-nowrap;
-    @apply min-h-touch min-w-touch;
-    /* Default: primary agent button */
-    @apply bg-agent-manager text-white shadow-md;
-  }
-
-  .btn:hover {
-    @apply shadow-lg -translate-y-0.5;
-    filter: brightness(1.1);
-  }
-
-  .btn:active {
-    filter: brightness(0.95);
-    @apply shadow-sm translate-y-0;
-  }
-
-  .btn:disabled {
-    @apply opacity-50 cursor-not-allowed shadow-none;
-  }
-
-  .btn:focus-visible {
-    @apply outline-2 outline-offset-2 outline-agent-manager;
-  }
-
-  /* Button variants */
-  .btn-secondary {
-    @apply bg-transparent border border-agent-manager text-agent-manager;
-  }
-
-  .btn-secondary:hover {
-    @apply bg-neutral-50;
-  }
-
-  .btn-secondary:active {
-    @apply bg-neutral-100;
-  }
-
-  .btn-ghost {
-    @apply bg-transparent text-neutral-900 px-md py-md;
-  }
-
-  .btn-ghost:hover {
-    @apply bg-neutral-50;
-  }
-
-  .btn-ghost:active {
-    @apply bg-neutral-100;
-  }
-
-  /* Input fields */
-  .input {
-    @apply w-full px-lg py-md bg-white border border-neutral-300 rounded-md text-base transition-all duration-150 font-normal;
-    @apply min-h-touch;
-  }
-
-  .input:hover {
-    @apply border-neutral-400;
-  }
-
-  .input:focus {
-    @apply border-agent-manager outline-none shadow-focus-manager bg-white;
-  }
-
-  .input:disabled {
-    @apply bg-neutral-50 text-neutral-500 cursor-not-allowed border-neutral-300;
-  }
-
-  .input::placeholder {
-    @apply text-neutral-500;
-  }
-
-  /* Text area */
-  .textarea {
-    @apply w-full px-lg py-md bg-white border border-neutral-300 rounded-md text-base resize-none transition-all duration-150 font-normal;
-    @apply min-h-[100px];
-  }
-
-  .textarea:hover {
-    @apply border-neutral-400;
-  }
-
-  .textarea:focus {
-    @apply border-agent-manager outline-none shadow-focus-manager bg-white;
-  }
-
-  /* Badge / Chip */
-  .badge {
-    @apply inline-flex items-center px-md py-xs rounded-sm font-xs font-semibold;
-    @apply bg-agent-manager bg-opacity-15 text-agent-manager;
-  }
-
-  .badge-solid {
-    @apply bg-agent-manager text-white shadow-sm;
-  }
-
-  .badge-outlined {
-    @apply border border-agent-manager bg-transparent text-agent-manager;
-  }
-
-  /* Card container */
-  .card {
-    @apply bg-white border border-neutral-300 rounded-sm p-lg shadow-sm transition-all duration-200;
-  }
-
-  .card:hover {
-    @apply shadow-md;
-  }
-
-  /* Agent card */
-  .agent-card {
-    @apply rounded-md p-md shadow-sm border border-neutral-200 bg-white transition-all duration-200;
-  }
-
-  .agent-card:hover {
-    @apply shadow-md -translate-y-0.5 border-neutral-300;
-  }
-
-  .agent-card-focus {
-    @apply border-2 p-[11px] outline-2 outline-offset-2;
-  }
-
-  /* Message containers */
-  .message-user {
-    @apply ml-auto rounded-md bg-agent-manager text-white px-lg py-md max-w-message shadow-sm font-normal transition-all duration-200 hover:shadow-md;
-  }
-
-  .message-agent {
-    @apply mr-auto rounded-md bg-white text-neutral-900 px-lg py-md shadow-sm font-normal border border-neutral-200 transition-all duration-200 hover:shadow-md hover:border-neutral-300;
-  }
-
-  .message-system {
-    @apply rounded-md bg-neutral-50 px-lg py-md text-neutral-700 font-normal border border-neutral-200;
-  }
-
-  /* Loading skeleton */
-  .skeleton {
-    @apply bg-neutral-300 animate-pulse;
-  }
-
-  /* Spinner */
-  .spinner {
-    @apply inline-block w-6 h-6 border-4 border-neutral-300 border-t-agent-manager rounded-full animate-spin-slow;
-  }
-
-  /* Focus visible utility for all interactive elements */
-  .focus-visible-ring {
-    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-agent-manager;
-  }
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid #4E7EBE;
+  outline-offset: 2px;
 }
 
-/* Utility overrides */
-@layer utilities {
-  /* Truncate text with ellipsis */
-  .truncate-1 {
-    @apply overflow-hidden text-ellipsis whitespace-nowrap;
-  }
-
-  .truncate-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    @apply overflow-hidden;
-  }
-
-  .truncate-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    @apply overflow-hidden;
-  }
-
-  /* Flexbox utilities */
-  .flex-center {
-    @apply flex items-center justify-center;
-  }
-
-  .flex-between {
-    @apply flex items-center justify-between;
-  }
-
-  /* Section spacing utilities */
-  .section {
-    @apply space-y-lg;
-  }
-
-  .section-title {
-    @apply text-lg font-semibold text-neutral-900 mb-md;
-  }
-
-  /* Grid utilities */
-  .grid-cols-responsive {
-    @apply grid grid-cols-1 gap-lg;
-  }
-
-  @screen tablet {
-    .grid-cols-responsive {
-      @apply grid-cols-2;
-    }
-  }
-
-  @screen desktop {
-    .grid-cols-responsive {
-      @apply grid-cols-4;
-    }
-  }
-
-  /* Responsive text sizing */
-  .text-responsive {
-    @apply text-base;
-  }
-
-  @screen tablet {
-    .text-responsive {
-      @apply text-lg;
-    }
-  }
-
-  /* Visually hidden but accessible */
-  .sr-only {
-    @apply absolute w-px h-px p-0 m-[-1px] overflow-hidden clip-path-inset whitespace-nowrap border-0;
-  }
-
-  /* Reduced motion support */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      @apply animate-none transition-none !important;
-    }
-  }
-
-  /* High contrast mode support */
-  @media (prefers-contrast: more) {
-    .card {
-      @apply border-2 border-neutral-900;
-    }
-
-    button {
-      @apply border-2;
-    }
-
-    input {
-      @apply border-2;
-    }
-  }
-
-  /* Dark mode disabled - using light mode only */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #4E7EBE;
+  outline-offset: 2px;
 }
 
-/* Print styles */
-@media print {
-  .no-print {
-    @apply hidden;
-  }
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

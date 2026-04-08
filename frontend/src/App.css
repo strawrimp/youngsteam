@@ -1,7 +1,4 @@
 /* App.css - Now managed by Tailwind CSS in globals.css */
-    font-size: 20px;
-  }
-}
 
 /* Accessibility - Focus Ring */
 *:focus-visible {

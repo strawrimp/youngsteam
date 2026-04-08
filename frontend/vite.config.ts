@@ -12,4 +12,7 @@ export default defineConfig({
     outDir: 'build',
     sourcemap: true,
   },
+  css: {
+    postcss: null,
+  },
 })
