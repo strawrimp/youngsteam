@@ -66,18 +66,25 @@ export function getAgentConfig(
     }
     
     if (agent) {
-      // Detect if name looks like an icon identifier (PascalCase icon names like "UserCog")
-      const isIconName = (str: string) => /^[A-Z][a-z]+[A-Z]/.test(str);
+      // Lucide/PascalCase icon names (UserCog, Code, Palette, Search) are not Material Symbols.
+      // Detect and fall back to Material Symbols defaults.
+      const isLucideIcon = (str: string) => /^[A-Z][a-z]+[A-Z]/.test(str);
       
       const displayName = agent.display_name 
-        || DEFAULTS[agent.role]?.display_name 
-        || (isIconName(agent.name) ? DEFAULTS[agent.role]?.display_name || agent.role : agent.name);
+        && !isLucideIcon(agent.display_name)
+        ? agent.display_name 
+        : DEFAULTS[agent.role]?.display_name || agent.name;
+      
+      const icon = agent.icon 
+        && !isLucideIcon(agent.icon) 
+        ? agent.icon 
+        : DEFAULTS[agent.role]?.icon || 'person';
       
       return {
         display_name: displayName,
         emoji: agent.emoji || DEFAULTS[agent.role]?.emoji || '👤',
         badge_text: agent.badge_text || DEFAULTS[agent.role]?.badge_text || '',
-        icon: agent.icon || DEFAULTS[agent.role]?.icon || 'person',
+        icon,
         color: agent.color || DEFAULTS[agent.role]?.color || '#6B7280',
       };
     }
