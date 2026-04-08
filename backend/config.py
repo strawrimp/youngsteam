@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama2"
 
+    # Gemini API (Fallback #1)
+    gemini_api_key: Optional[str] = None
+    gemini_model: str = "gemini-2.5-flash-preview-05-20"
+    gemini_temperature: float = 0.7
+    gemini_max_retries: int = 3
+
     # Image Service
     image_service: str = "dall_e"  # or "local", "glm_vision"
 

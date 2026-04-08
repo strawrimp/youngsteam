@@ -10,7 +10,12 @@ logger = logging.getLogger(__name__)
 class DeveloperAgent(BaseAgent):
     """Technical lead agent for development decisions."""
 
-    def __init__(self, agent_id: str, name: str = "Developer", deepseek_service: DeepSeekService = None):
+    def __init__(
+        self,
+        agent_id: str,
+        name: str = "Developer",
+        deepseek_service: DeepSeekService = None,
+    ):
         """Initialize Developer agent.
 
         Args:
@@ -18,18 +23,23 @@ class DeveloperAgent(BaseAgent):
             name: Agent name (default: Developer)
             deepseek_service: DeepSeek service instance for API calls
         """
-        system_prompt = """당신은 AI 회사의 기술 리드입니다. 전문:
-- Python, JavaScript, 아키텍처 설계
-- 기술적 실현 가능성 평가
-- 코드 작성 및 리뷰
+        system_prompt = """당신은 AI 회사의 개발자입니다. 기술을 좋아하고, 실력 있으며, 팀원들과 함께 일하는 걸 즐깁니다.
 
-기술적 관점에서 현명한 의견을 제시하세요."""
+전문:
+- 웹 개발 (React, Node.js, Python)
+- API 만들기와 데이터베이스 설계
+- 코드가 느리지 않게 하는 방법
+- 보안과 안정성 챙기기
+
+기술적으로 어떻게 구현할지, 어려운 부분은 없는지, 현실적으로 판단해주세요."""
 
         super().__init__(agent_id, name, "developer", system_prompt)
         self.deepseek = deepseek_service or DeepSeekService()
 
         # Load SOUL personality
-        self._soul_system_prompt = self.get_soul_system_prompt(debate_style="analytical")
+        self._soul_system_prompt = self.get_soul_system_prompt(
+            debate_style="analytical"
+        )
 
     async def think(self, context: str) -> str:
         """Process context and generate technical analysis.
@@ -73,11 +83,13 @@ class DeveloperAgent(BaseAgent):
         Returns:
             Developer's response
         """
-        prompt = f"""사용자의 다음 메시지에 개발자 관점에서 응답하세요:
+        prompt = f"""사용자가 이렇게 물어봤어요: "{message}"
 
-"{message}"
-
-기술적 실현 가능성, 구현 난이도, 아키텍처 영향을 고려한 조언을 제시하세요. (2-3문장)"""
+개발자로서 자연스럽게 응답해주세요.
+- 어떻게 구현할지 생각나는 대로 이야기하거나
+- 기술적으로 어려울 것 같은 점이 있다면 솔직하게 말하거나
+- 더 나은 방법이 떠오른다면 제안하거나
+너무 기술적인 용어는 피하고, 팀원들도 이해할 수 있게 설명해주세요."""
 
         response = await self.deepseek.call_model(
             system_prompt=self.system_prompt,
@@ -107,7 +119,7 @@ class DeveloperAgent(BaseAgent):
         Returns:
             Dict with choice and reasoning
         """
-        candidates_str = "\n".join([f"{i+1}. {c}" for i, c in enumerate(candidates)])
+        candidates_str = "\n".join([f"{i + 1}. {c}" for i, c in enumerate(candidates)])
 
         prompt = f"""주제: {topic}
 
@@ -158,7 +170,9 @@ class DeveloperAgent(BaseAgent):
         # Build context from previous messages
         context = f"주제: {topic}\n라운드: {round_num}\n\n이전 의견들:\n"
         for msg in previous_messages[-10:]:  # Last 10 messages for context
-            context += f"- {msg.get('agent_name', 'Unknown')}: {msg.get('content', '')}\n"
+            context += (
+                f"- {msg.get('agent_name', 'Unknown')}: {msg.get('content', '')}\n"
+            )
 
         debate_mode_instruction = {
             "debate": "상대 의견에 대해 논리적으로 반박하거나 개선안을 제시하세요.",
@@ -169,7 +183,7 @@ class DeveloperAgent(BaseAgent):
         prompt = f"""{context}
 
 개발자 관점에서 위 의견들을 종합하여 다음과 같이 응답하세요:
-{debate_mode_instruction.get(mode, debate_mode_instruction['debate'])}
+{debate_mode_instruction.get(mode, debate_mode_instruction["debate"])}
 
 기술적 복잡도, 구현 시간, 아키텍처 영향을 고려하여 2-3문장으로 응답하세요."""
 

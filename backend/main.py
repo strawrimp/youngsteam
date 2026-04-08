@@ -1,9 +1,38 @@
-from websocket.manager import ConnectionManager
+"""Main FastAPI application for AI Virtual Company backend."""
 
- from websocket.events import EventType, create_event
-from websocket.manager import ConnectionManager
+from contextlib import asynccontextmanager
+from typing import Optional
+import json
+import logging
 
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+from database import get_db, init_db, SessionLocal
+from models import Agent, Conversation, Message, TeamSettings
+from engines.conversation_engine import ConversationEngine
+from engines.voting_engine import VotingEngine
+from engines.debate_engine import DebateEngine
+from agents.agent_message_broker import AgentMessageBroker
+from services.memory_service import MemoryService
+from services.deepseek_service import DeepSeekService
+from services.glm_service import GLMService
+from services.llm_provider_service import (
+    LLMProviderService,
+    DeepSeekProvider,
+    OpenAIProvider,
+    GeminiProvider,
+    OllamaProvider,
+)
+from agents.manager_agent import ManagerAgent
+from agents.developer_agent import DeveloperAgent
+from agents.designer_agent import DesignerAgent
+from agents.researcher_agent import ResearcherAgent
+from config import settings
+from websocket.manager import ConnectionManager
 from websocket.events import EventType, create_event
+from routes import projects_router, agents_router, discussions_router, votes_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -58,35 +87,37 @@ async def lifespan(app: FastAPI):
         )
         logger.info(f"✅ Registered LLM Provider: DeepSeek (Primary)")
 
-        # Register OpenAI if available
+        # Register Gemini as fallback #1
+        if settings.gemini_api_key:
+            gemini_provider = GeminiProvider(
+                api_key=settings.gemini_api_key,
+                model=settings.gemini_model,
+                temperature=settings.gemini_temperature,
+            )
+            llm_provider_service.register_provider("gemini", gemini_provider)
+            logger.info(f"✅ Registered LLM Provider: Gemini (Fallback #1)")
+        else:
+            logger.info("   Gemini API Key: NOT SET (skipping)")
+
+        # Register OpenAI if available (legacy)
         if settings.openai_api_key:
             openai_provider = OpenAIProvider(
                 api_key=settings.openai_api_key,
                 model="gpt-4o",
             )
             llm_provider_service.register_provider("openai", openai_provider)
-            logger.info(f"✅ Registered LLM Provider: OpenAI")
+            logger.info(f"✅ Registered LLM Provider: OpenAI (Legacy)")
 
-        # Register Claude if available
-        if settings.claude_api_key:
-            claude_provider = ClaudeProvider(
-                api_key=settings.claude_api_key,
-                model="claude-sonnet-4-20250514",
-            )
-            llm_provider_service.register_provider("claude", claude_provider)
-            logger.info(f"✅ Registered LLM Provider: Claude")
-
-        # Always support Ollama for local inference
+        # Always support Ollama for local inference (fallback #2)
         ollama_provider = OllamaProvider(
             base_url=settings.ollama_url,
             model=settings.ollama_model,
         )
         llm_provider_service.register_provider("ollama", ollama_provider)
-        logger.info(f"✅ Registered LLM Provider: Ollama (Local)")
+        logger.info(f"✅ Registered LLM Provider: Ollama (Local Fallback #2)")
 
-    app.state.ws_manager = ConnectionManager()
-    logger.info("✅ WebSocket Connection Manager initialized")
-
+        app.state.ws_manager = ConnectionManager()
+        logger.info("✅ WebSocket Connection Manager initialized")
 
         # Get agents from database
         db = SessionLocal()
@@ -173,117 +204,128 @@ async def health_check():
 
 
 # WebSocket endpoint for real-time chat
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            logger.info(f"WebSocket received: {data}")
+
             try:
-                data = await websocket.receive_text()
-                logger.info(f"WebSocket received: {data}")
-                
-                try:
-                    message = json.loads(data)
-                    action = message.get("action")
-                    
-                    # Handle different actions
-                    if action == "subscribe_project":
-                        # 프로젝트 구독
-                        project_id = message.get("project_id")
-                        if project_id:
-                            await app.state.ws_manager.subscribe_to_project(websocket, project_id)
-                            await app.state.ws_manager.send_personal_message({
-                                "type": "subscribed",
-                                "project_id": project_id
-                            }, websocket)
-                    
-                    elif action == "unsubscribe_project":
-                        # 프로젝트 구독 해제
-                        project_id = message.get("project_id")
-                        if project_id:
-                            await app.state.ws_manager.unsubscribe_from_project(websocket, project_id)
-                            await app.state.ws_manager.send_personal_message({
-                                "type": "unsubscribed",
-                                "project_id": project_id
-                            }, websocket)
-                    
-                    elif action == "chat":
-                        # 기존 채팅 로직 유지
-                        user_message = message.get("content", "").strip()
-                        conversation_id = message.get("conversation_id")
-                        
-                        if not conversation_id:
-                            await app.state.ws_manager.send_personal_message({
-                                "error": "Conversation ID required"
-                            }, websocket)
-                            continue
-                        
-                        # 기존 채팅 로직
-                        engine = app.state.conversation_engine
-                        try:
-                            logger.info("About to call engine.process_message")
-                            result = await engine.process_message(conversation_id, user_message)
-                            logger.info(
-                                f"Engine returned with {len(result.get('agent_responses', {}))} responses"
+                message = json.loads(data)
+                action = message.get("action")
+
+                # Handle different actions
+                if action == "subscribe_project":
+                    # 프로젝트 구독
+                    project_id = message.get("project_id")
+                    if project_id:
+                        await app.state.ws_manager.subscribe_to_project(
+                            websocket, project_id
+                        )
+                        await app.state.ws_manager.send_personal_message(
+                            {"type": "subscribed", "project_id": project_id}, websocket
+                        )
+
+                elif action == "unsubscribe_project":
+                    # 프로젝트 구독 해제
+                    project_id = message.get("project_id")
+                    if project_id:
+                        await app.state.ws_manager.unsubscribe_from_project(
+                            websocket, project_id
+                        )
+                        await app.state.ws_manager.send_personal_message(
+                            {"type": "unsubscribed", "project_id": project_id},
+                            websocket,
+                        )
+
+                elif action == "chat":
+                    # 기존 채팅 로직 유지
+                    user_message = message.get("content", "").strip()
+                    conversation_id = message.get("conversation_id")
+
+                    if not conversation_id:
+                        await app.state.ws_manager.send_personal_message(
+                            {"error": "Conversation ID required"}, websocket
+                        )
+                        continue
+
+                    # 기존 채팅 로직
+                    engine = app.state.conversation_engine
+                    try:
+                        logger.info("About to call engine.process_message")
+                        result = await engine.process_message(
+                            conversation_id, user_message
+                        )
+                        logger.info(
+                            f"Engine returned with {len(result.get('agent_responses', {}))} responses"
+                        )
+
+                        # Send agent responses
+                        for agent_id, response in result.get(
+                            "agent_responses", {}
+                        ).items():
+                            agent = engine.agents.get(agent_id)
+                            if agent:
+                                agent_name = agent.name
+                            else:
+                                agent_name = agent_id
+                                logger.warning(f"Agent {agent_id} not found")
+
+                            await websocket.send_json(
+                                {
+                                    "type": "agent_response",
+                                    "agent_id": agent_id,
+                                    "agent_name": agent_name,
+                                    "content": response,
+                                    "timestamp": result["timestamp"],
+                                }
                             )
 
-                            # Send agent responses
-                            for agent_id, response in result.get("agent_responses", {}).items():
-                                agent = engine.agents.get(agent_id)
-                                agent_name = agent.name if agent else agent_id
-
-                                
-                                await websocket.send_json(
-                                    {
-                                        "type": "agent_response",
-                                        "agent_id": agent_id,
-                                        "agent_name": agent_name,
-                                        "content": response,
-                                        "timestamp": result["timestamp"],
-                                    }
-                                )
-                            else:
-                                logger.warning(f"Agent {agent_id} not found")
-                        
                         # Save to memory
                         await memory.save_memory(
                             category="conversation",
                             content=f"User: {user_message}",
-                            created_by="user"
-                        )
-                        )
-
-                    # Send completion status
-                    await websocket.send_json(
-                        {
-                            "type": "status",
-                            "status": "complete",
-                            "message": "✅ 모all 에이전트 can 응답했습니다.",
-                        }
-                    else:
-                        await websocket.send_json(
-                            {
-                                "error": f"Unknown action: {action}"
-                            }
+                            created_by="user",
                         )
 
-                    except json.JSONDecodeError:
+                        # Send completion status
                         await websocket.send_json(
                             {
-                                "error": "Invalid JSON"
+                                "type": "status",
+                                "status": "complete",
+                                "message": "✅ 모든 에이전트가 응답했습니다.",
                             }
                         )
                     except Exception as e:
-                        logger.error(f"Error processing message: {e}")
+                        logger.error(f"Error processing chat message: {e}")
                         await websocket.send_json(
                             {
                                 "error": str(e),
                             }
                         )
 
-                    except WebSocketDisconnect:
-                        app.state.ws_manager.disconnect(websocket)
-                        logger.info(f"WebSocket client disconnected")
-                    
-                    except Exception as e:
-                        logger.error(f"WebSocket error: {type(e).__name__}: {e}")
-                        app.state.ws_manager.disconnect(websocket)
-                        logger.info(f"WebSocket client disconnected")
+                else:
+                    await websocket.send_json({"error": f"Unknown action: {action}"})
+
+            except json.JSONDecodeError:
+                await websocket.send_json({"error": "Invalid JSON"})
+            except Exception as e:
+                logger.error(f"Error processing message: {e}")
+                await websocket.send_json(
+                    {
+                        "error": str(e),
+                    }
+                )
+
+    except WebSocketDisconnect:
+        app.state.ws_manager.disconnect(websocket)
+        logger.info(f"WebSocket client disconnected")
+    except Exception as e:
+        logger.error(f"WebSocket error: {type(e).__name__}: {e}")
+        app.state.ws_manager.disconnect(websocket)
+        logger.info(f"WebSocket client disconnected due to error")
 
 
 # REST API endpoints for chat
