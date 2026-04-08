@@ -1,24 +1,10 @@
 import React, { useEffect } from 'react';
 import { useConversationStore } from '../store';
 import { api } from '../api';
-import { Agent } from '../types';
-
-const AGENT_COLORS: Record<string, string> = {
-  manager: '#4E7EBE',
-  developer: '#4A9B6F',
-  designer: '#7C6BA8',
-  researcher: '#D4A055',
-};
-
-const AGENT_LABELS: Record<string, string> = {
-  manager: '관리자 (CEO)',
-  developer: '개발자',
-  designer: '디자이너',
-  researcher: '연구원',
-};
+import { AgentCard } from './AgentCard';
 
 export const AgentPanel: React.FC = () => {
-  const { agents, setAgents, agentResponses, clearAgentResponses } = useConversationStore();
+  const { agents, setAgents, agentResponses } = useConversationStore();
 
   // Load agents on mount
   useEffect(() => {
@@ -35,61 +21,37 @@ export const AgentPanel: React.FC = () => {
   }, [setAgents]);
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-neutral-300 overflow-hidden">
+    <div className="flex flex-col h-full glass-panel overflow-hidden animate-fade-in dark:bg-slate-800/50 bg-white/50">
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-neutral-300 px-lg py-md">
-        <h3 className="text-lg font-semibold text-neutral-900">에이전트 팀</h3>
+      <div className="flex-shrink-0 border-b dark:border-slate-700 border-slate-200 px-lg py-md dark:bg-slate-800/70 bg-white">
+        <h3 className="text-lg font-semibold dark:text-slate-100 text-slate-900">에이전트 팀</h3>
+        <p className="text-xs dark:text-slate-400 text-slate-600 mt-xs">4명의 전문가가 준비되었습니다</p>
       </div>
 
       {/* Agents list */}
-      <div className="flex-1 overflow-y-auto p-lg space-y-md">
+      <div className="flex-1 overflow-y-auto p-lg space-y-md scrollbar-thin">
         {agents.length === 0 ? (
           <div className="flex items-center justify-center h-full text-center">
-            <p className="text-sm text-neutral-600">에이전트 팀을 준비 중입니다.</p>
+            <div className="animate-pulse">
+              <div className="text-4xl mb-md">⏳</div>
+              <p className="text-sm dark:text-slate-400 text-slate-600">에이전트 팀을 준비 중입니다.</p>
+            </div>
           </div>
         ) : (
-          agents.map((agent) => {
+          agents.map((agent, index) => {
             const response = agentResponses[agent.id];
-            const hasResponse = !!response;
 
             return (
               <div
                 key={agent.id}
-                className="rounded-md border border-neutral-200 bg-white p-md transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Agent header */}
-                <div className="flex items-start gap-md mb-md">
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
-                    style={{ backgroundColor: AGENT_COLORS[agent.role] }}
-                  >
-                    {agent.name[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-neutral-900">{agent.name}</h4>
-                    <p className="text-xs text-neutral-600">
-                      {AGENT_LABELS[agent.role] || agent.role}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status indicator */}
-                <div className="flex items-center gap-xs">
-                  <span className={`inline-block w-1.5 h-1.5 rounded-full ${hasResponse ? 'bg-success' : 'bg-agent-manager'}`} />
-                  <span className={`text-xs font-medium ${hasResponse ? 'text-success' : 'text-neutral-600'}`}>
-                    {hasResponse ? '✓ 응답 완료' : '○ 대기 중'}
-                  </span>
-                </div>
-
-                {/* Response preview */}
-                {hasResponse && (
-                  <div className="mt-md pt-md border-t border-neutral-200">
-                    <p className="text-xs text-neutral-700 truncate">
-                      {response.content.substring(0, 100)}
-                      {response.content.length > 100 ? '...' : ''}
-                    </p>
-                  </div>
-                )}
+                <AgentCard
+                  agent={agent}
+                  response={response}
+                  isTyping={false}
+                />
               </div>
             );
           })

@@ -1,47 +1,159 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import MessageBubble, { MessageRole } from './MessageBubble';
+import TypingIndicator from './TypingIndicator';
+import { InviteModal } from './InviteModal';
+import { useMention } from '../hooks/useMention';
 import { useConversationStore } from '../store';
+import { api } from '../api';
+import { InviteSuggestion, MentionCandidate } from '../types';
+import { useTheme } from '../hooks/useTheme';
 
-const AGENT_COLORS: Record<string, string> = {
-  manager: '#4E7EBE',
-  developer: '#4A9B6F',
-  designer: '#7C6BA8',
-  researcher: '#D4A055',
-};
-
-interface ChatWindowProps {
-  wsInstance?: WebSocket | null;
+export interface ChatMessage {
+  id: string;
+  role: MessageRole;
+  name: string;
+  content: string;
+  isCode?: boolean;
+  isUser?: boolean;
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ wsInstance: wsFromProps }) => {
-  const {
-    messages,
-    isConnected,
-    isLoading,
-    processingStatus,
-    addMessage,
-    conversationId,
-    setLoading,
-    wsInstance: wsFromStore,
-    isSending,
-    setIsSending,
-  } = useConversationStore();
+interface ChatWindowProps {
+  messages?: ChatMessage[];
+  isTyping?: boolean;
+  typingAgentName?: string;
+  onSendMessage?: (message: string) => void;
+  dateLabel?: string;
+}
 
-  const wsInstance = wsFromProps !== undefined ? wsFromProps : wsFromStore;
-  const wsRef = useRef<WebSocket | null>(wsInstance);
+// Mention Dropdown Component
+interface MentionDropdownProps {
+  candidates: MentionCandidate[];
+  selectedIndex: number;
+  onSelect: (candidate: MentionCandidate) => void;
+  position: { top: number; left: number };
+}
 
-  useEffect(() => {
-    wsRef.current = wsInstance;
-  }, [wsInstance]);
+const MentionDropdown: React.FC<MentionDropdownProps> = ({
+  candidates,
+  selectedIndex,
+  onSelect,
+  position,
+}) => {
+  const { isDark } = useTheme();
+  
+  if (candidates.length === 0) return null;
 
-  useEffect(() => {
-    if (!processingStatus && isLoading) {
-      setIsSending(false);
-      setLoading(false);
-    }
-  }, [processingStatus, isLoading, setIsSending, setLoading]);
+  return (
+    <div
+      className={`absolute z-50 border rounded-lg shadow-lg 
+                 max-h-48 overflow-y-auto min-w-[200px] ${
+                   isDark 
+                     ? 'bg-slate-800 border-slate-700' 
+                     : 'bg-white border-slate-200'
+                 }`}
+      style={{ top: position.top, left: position.left }}
+    >
+      {candidates.map((candidate, index) => (
+        <button
+          key={candidate.id}
+          onClick={() => onSelect(candidate)}
+          className={`w-full px-4 py-2 flex items-center gap-3 text-left transition-colors
+            ${index === selectedIndex 
+              ? isDark 
+                ? 'bg-blue-900/40 text-blue-300' 
+                : 'bg-primary/10 text-primary' 
+              : isDark 
+                ? 'hover:bg-slate-700' 
+                : 'hover:bg-slate-50'}`}
+        >
+          <span className="text-xl">
+            {candidate.emoji || '🤖'}
+          </span>
+          <div>
+            <div className={`font-medium text-sm ${
+              isDark ? 'text-slate-200' : ''
+            }`}>{candidate.display_name || candidate.name}</div>
+            <div className={`text-xs ${
+              isDark ? 'text-slate-500' : 'text-slate-500'
+            }`}>@{candidate.name}</div>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+};
 
-  const [input, setInput] = useState('');
+const ChatWindow: React.FC<ChatWindowProps> = ({
+  messages: propsMessages,
+  isTyping = false,
+  typingAgentName,
+  onSendMessage,
+  dateLabel = '경영 동기화 • 14:00',
+}) => {
+  const [inputValue, setInputValue] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Theme
+  const { isDark } = useTheme();
+
+  // Get messages from store
+  const storeMessages = useConversationStore((state) => state.messages);
+  const processingStatus = useConversationStore((state) => state.processingStatus);
+  const agents = useConversationStore((state) => state.agents);
+  const conversationId = useConversationStore((state) => state.conversationId);
+  const wsInstance = useConversationStore((state) => state.wsInstance);
+
+  const displayMessages = storeMessages.length > 0 ? storeMessages : (propsMessages || []);
+
+  // Mention hook
+  const handleMentionAgent = useCallback(async (agentId: string) => {
+    if (!conversationId) return;
+    try {
+      await api.mentionAgent({
+        conversation_id: conversationId,
+        mentioned_agent_id: agentId,
+        message: inputValue,
+      });
+    } catch (error) {
+      console.error('Failed to mention agent:', error);
+    }
+  }, [conversationId, inputValue]);
+
+  const {
+    mentionState,
+    handleInput: handleMentionInput,
+    selectCandidate,
+    handleKeyDown: handleMentionKeyDown,
+  } = useMention({ agents, onMention: handleMentionAgent });
+
+  // Invite suggestions state
+  const [inviteSuggestions, setInviteSuggestions] = useState<InviteSuggestion[]>([]);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  // WebSocket event listener for invite suggestions
+  useEffect(() => {
+    if (!wsInstance) return;
+
+    const handleInviteSuggested = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'INVITE_SUGGESTED' && data.suggestions) {
+          setInviteSuggestions(data.suggestions);
+          setIsInviteModalOpen(true);
+        }
+      } catch (error) {
+        console.error('Failed to parse invite event:', error);
+      }
+    };
+
+    wsInstance.addEventListener('message', handleInviteSuggested);
+    return () => {
+      wsInstance.removeEventListener('message', handleInviteSuggested);
+    };
+  }, [wsInstance]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -49,160 +161,244 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ wsInstance: wsFromProps 
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, processingStatus]);
+  }, [displayMessages, isTyping]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || !isConnected || isSending) return;
-
-    setIsSending(true);
-    setLoading(true);
-
-    const userMessage = {
-      id: `msg-${Date.now()}`,
-      conversationId,
-      senderType: 'user' as const,
-      content: input,
-      timestamp: new Date(),
-      type: 'text' as const,
-    };
-
-    addMessage(userMessage);
-    const messageText = input;
-    setInput('');
-
-    const ws = wsRef.current;
-    console.log('Sending message, WebSocket readyState:', ws?.readyState);
-    try {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        console.log('Sending to WebSocket:', messageText);
-        ws.send(JSON.stringify({ content: messageText }));
-      } else {
-        console.error('WebSocket not open, state:', ws?.readyState);
-        setIsSending(false);
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      setIsSending(false);
-      setLoading(false);
+  const handleSend = () => {
+    if (inputValue.trim() && onSendMessage) {
+      onSendMessage(inputValue.trim());
+      setInputValue('');
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart || 0;
+    setInputValue(value);
+    setCursorPosition(cursorPos);
+    handleMentionInput(value, cursorPos);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    // Handle mention navigation first
+    const keyResult = handleMentionKeyDown(e);
+    if (keyResult === true) return; // Handled by mention
+
+    if (typeof keyResult === 'object' && keyResult.shouldSelect) {
+      // Select mention candidate
+      const result = selectCandidate(
+        keyResult.candidate,
+        inputValue,
+        cursorPosition
+      );
+      if (result) {
+        setInputValue(result.newValue);
+        setTimeout(() => {
+          inputRef.current?.setSelectionRange(
+            result.newCursorPosition,
+            result.newCursorPosition
+          );
+        }, 0);
+      }
+      return;
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSend();
     }
   };
 
+  // Invite handlers
+  const handleAcceptInvite = async (agentId: string) => {
+    try {
+      await api.acceptInvite({
+        conversation_id: conversationId,
+        agent_id: agentId,
+      });
+      setInviteSuggestions((prev) => prev.filter((s) => s.agent_id !== agentId));
+      if (inviteSuggestions.length === 1) {
+        setIsInviteModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Failed to accept invite:', error);
+    }
+  };
+
+  const handleRejectInvite = async (agentId: string) => {
+    try {
+      await api.rejectInvite({
+        conversation_id: conversationId,
+        agent_id: agentId,
+      });
+      setInviteSuggestions((prev) => prev.filter((s) => s.agent_id !== agentId));
+      if (inviteSuggestions.length === 1) {
+        setIsInviteModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Failed to reject invite:', error);
+    }
+  };
+
+  // Calculate mention dropdown position
+  const getMentionDropdownPosition = () => {
+    if (!inputRef.current) return { top: 0, left: 0 };
+    const rect = inputRef.current.getBoundingClientRect();
+    return {
+      top: rect.top - 200, // Show above input
+      left: rect.left,
+    };
+  };
+
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden">
-      {/* Header with connection status */}
-      <div className="flex-shrink-0 border-b border-neutral-300 px-lg py-md bg-neutral-50">
-        <div className="flex items-center gap-md">
-          <span className={`inline-block w-2 h-2 rounded-full ${isConnected ? 'bg-success' : 'bg-error'}`} />
-          <span className="text-sm font-medium text-neutral-700">
-            {isConnected ? '✓ 연결됨' : '○ 연결 중단'}
-          </span>
-        </div>
-      </div>
-
-      {/* Messages container */}
-      <div className="flex-1 overflow-y-auto p-lg space-y-lg">
-        {messages.length === 0 && !processingStatus ? (
-          <div className="flex flex-col items-center justify-center h-full gap-md text-center">
-            <p className="text-2xl">👋</p>
-            <p className="text-base font-medium text-neutral-900">대화를 시작하세요</p>
-            <p className="text-sm text-neutral-600">
-              메시지를 입력하면 4명의 에이전트가 함께 응답합니다
-            </p>
+    <>
+      <main className={`flex-1 flex flex-col min-w-0 ${
+        isDark ? 'bg-slate-900' : 'bg-white'
+      }`}>
+        {/* Chat Stream Area */}
+        <div className={`flex-1 overflow-y-auto p-8 flex flex-col gap-8 no-scrollbar ${
+          isDark ? 'bg-slate-900/50' : 'bg-slate-50/30'
+        }`}>
+          {/* Date Label */}
+          <div className="flex justify-center">
+            <span className={`px-4 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase ${
+              isDark 
+                ? 'bg-slate-800 text-slate-400' 
+                : 'bg-slate-200 text-slate-600'
+            }`}>
+              {dateLabel}
+            </span>
           </div>
-        ) : (
-          <>
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={
-                  message.senderType === 'user'
-                    ? 'message-user'
-                    : message.type === 'error'
-                    ? 'message-system'
-                    : 'message-agent'
-                }
-              >
-                {message.senderType !== 'user' && (
-                  <div className="flex items-center justify-between mb-md">
-                    <div className="flex items-center gap-sm">
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'] }}
-                      />
-                      <span
-                        className="text-xs font-semibold"
-                        style={{ color: AGENT_COLORS[message.agentName?.toLowerCase() || 'manager'] }}
-                      >
-                        {message.agentName}
-                      </span>
-                    </div>
-                    <span className="text-caption text-neutral-600">
-                      {message.timestamp.toLocaleTimeString('ko-KR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                )}
-                <div className="text-base leading-relaxed text-neutral-800">{message.content}</div>
-                {message.senderType === 'user' && (
-                  <span className="text-caption text-white opacity-70 mt-xs block">
-                    {message.timestamp.toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                )}
-              </div>
-            ))}
-          </>
-        )}
 
-        {(isLoading || processingStatus) && (
-          <div className="message-agent">
-            <div className="flex items-center gap-md">
-              <div className="flex gap-xs">
-                <span className="inline-block w-2 h-2 rounded-full bg-agent-manager animate-pulse" />
-                <span className="inline-block w-2 h-2 rounded-full bg-agent-manager animate-pulse" style={{ animationDelay: '0.2s' }} />
-                <span className="inline-block w-2 h-2 rounded-full bg-agent-manager animate-pulse" style={{ animationDelay: '0.4s' }} />
-              </div>
-              <span className="text-sm text-neutral-700">
-                {processingStatus || '에이전트가 생각 중...'}
-              </span>
+          {/* Status Message */}
+          {processingStatus && (
+            <div className={`text-center text-sm ${
+              isDark ? 'text-slate-400' : 'text-slate-600'
+            }`}>
+              {processingStatus}
             </div>
+          )}
+
+          {/* Empty state */}
+          {displayMessages.length === 0 && !isTyping && (
+            <div className={`flex-1 flex flex-col items-center justify-center gap-3 py-16 ${
+              isDark ? 'text-slate-500' : 'text-slate-400'
+            }`}>
+              <span className="material-symbols-outlined text-5xl">forum</span>
+              <p className="text-sm font-medium">경영진 팀에게 명령을 내리세요</p>
+              <p className={`text-xs ${
+                isDark ? 'text-slate-600' : 'text-slate-400'
+              }`}>@멘션으로 특정 에이전트를 호출할 수 있습니다</p>
+            </div>
+          )}
+
+          {/* Messages */}
+          {displayMessages.map((message) => {
+            // Handle both old (role/name/isUser) and new (senderType/agentName) formats
+            const isUser = (message as any).isUser === true || message.senderType === 'user';
+
+            // Determine role from multiple sources
+            const agentNameLower = (message.agentName as string)?.toLowerCase() ?? '';
+            const validRoles = ['manager', 'developer', 'designer', 'researcher', 'user'];
+            const inferredRole = validRoles.includes(agentNameLower) ? agentNameLower : (isUser ? 'user' : 'manager');
+            const role = ((message as any).role as string) || inferredRole;
+
+            const name = (message as any).name || message.agentName || (isUser ? '나' : 'Unknown');
+
+            return (
+              <MessageBubble
+                key={message.id}
+                role={role as MessageRole}
+                name={name}
+                content={message.content}
+                isCode={false}
+                isUser={isUser}
+              />
+            );
+          })}
+
+          {/* Typing Indicator */}
+          {isTyping && <TypingIndicator agentName={typingAgentName} />}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Section */}
+        <footer className="p-8 pt-0">
+          <div 
+            ref={inputContainerRef}
+            className={`relative max-w-input mx-auto border rounded-2xl p-2 shadow-lg flex items-center gap-2 ${
+              isDark 
+                ? 'bg-slate-800 border-slate-700' 
+                : 'bg-white border-slate-200'
+            }`}
+          >
+            <button className={`p-3 transition-colors ${
+              isDark 
+                ? 'text-slate-500 hover:text-slate-300' 
+                : 'text-slate-400 hover:text-primary'
+            }`}>
+              <span className="material-symbols-outlined">attach_file</span>
+            </button>
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                className={`w-full bg-transparent border-none outline-none focus:ring-0 font-medium ${
+                  isDark 
+                    ? 'text-slate-100 placeholder-slate-500' 
+                    : 'text-slate-900 placeholder-slate-400'
+                }`}
+                placeholder="경영진 팀에게 명령을 내리세요... (@멘션 가능)"
+              />
+              
+              {/* Mention Dropdown */}
+              {mentionState.isActive && mentionState.candidates.length > 0 && (
+                <MentionDropdown
+                  candidates={mentionState.candidates}
+                  selectedIndex={mentionState.selectedIndex}
+                  onSelect={(candidate) => {
+                    const result = selectCandidate(candidate, inputValue, cursorPosition);
+                    if (result) {
+                      setInputValue(result.newValue);
+                      setTimeout(() => {
+                        inputRef.current?.setSelectionRange(
+                          result.newCursorPosition,
+                          result.newCursorPosition
+                        );
+                      }, 0);
+                    }
+                  }}
+                  position={getMentionDropdownPosition()}
+                />
+              )}
+            </div>
+            <button 
+              onClick={handleSend}
+              className={`p-3 text-white rounded-xl hover:brightness-110 
+                         active:scale-95 transition-all flex items-center justify-center ${
+                           isDark ? 'bg-blue-600' : 'bg-primary'
+                         }`}
+            >
+              <span className="material-symbols-outlined">send</span>
+            </button>
           </div>
+        </footer>
+
+        {/* Invite Modal */}
+        {isInviteModalOpen && inviteSuggestions.length > 0 && (
+          <InviteModal
+            suggestions={inviteSuggestions}
+            onAccept={handleAcceptInvite}
+            onReject={handleRejectInvite}
+            onClose={() => setIsInviteModalOpen(false)}
+          />
         )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input area */}
-      <div className="flex-shrink-0 border-t border-neutral-300 bg-white p-lg space-y-md">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="메시지를 입력하세요... (Shift+Enter: 줄바꿈)"
-          disabled={!isConnected || isSending}
-          className="textarea w-full max-h-[120px]"
-          rows={3}
-        />
-        <button
-          onClick={handleSendMessage}
-          disabled={!isConnected || !input.trim() || isSending}
-          className="btn w-full bg-agent-manager text-white"
-        >
-          {isSending ? '전송 중...' : '전송'}
-        </button>
-      </div>
-    </div>
+      </main>
+    </>
   );
 };
+
+export default ChatWindow;
