@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     # WebSocket
     ws_host: str = "0.0.0.0"
-    ws_port: int = 8000
+    ws_port: int = 8001
 
     # Environment
     environment: str = "development"

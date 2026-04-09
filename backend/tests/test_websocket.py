@@ -11,7 +11,7 @@ import websockets
 from unittest.mock import MagicMock, AsyncMock, patch
 
 # Base URL for WebSocket tests
-WS_URL = "ws://localhost:8000/ws"
+WS_URL = "ws://localhost:8001/ws"
 
 
 class TestWebSocketConnection:

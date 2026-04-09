@@ -77,10 +77,10 @@ const App: React.FC = () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname;
  
-        // Backend runs on port 8000, frontend on port 5173
-        // For development: connect to localhost:8000
-        // For production: connect to same host on port 8000
-        const backendPort = (import.meta.env.VITE_BACKEND_PORT as string) || '8000';
+        // Backend runs on port 8001, frontend on port 5173
+        // For development: connect to localhost:8001
+        // For production: connect to same host on port 8001
+        const backendPort = (import.meta.env.VITE_BACKEND_PORT as string) || '8001';
         const wsUrl = `${protocol}//${host}:${backendPort}`;
  
         console.log('[WebSocket] Connecting to:', `${wsUrl}/ws`);

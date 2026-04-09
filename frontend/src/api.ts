@@ -17,7 +17,7 @@ import {
 } from './types';
 
 // Build API base URL dynamically using current host
-const API_BASE = `http://${window.location.hostname}:8000`;
+const API_BASE = `http://${window.location.hostname}:8001`;
 
 export const api = {
   // Health check

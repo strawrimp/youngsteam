@@ -4,9 +4,9 @@
     {
       "name": "backend-dev",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "uvicorn", "main:app", "--reload", "--port", "8000"],
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--reload", "--port", "8001"],
       "cwd": "backend",
-      "port": 8000
+      "port": 8001
     },
     {
       "name": "frontend-dev",

@@ -9,7 +9,7 @@ import requests
 from unittest.mock import MagicMock, AsyncMock, patch
 
 # Base URL for API tests
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8001"
 
 
 # ==================== Fixtures ====================
