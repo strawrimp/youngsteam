@@ -157,16 +157,27 @@ const App: React.FC = () => {
       console.error('[App] WebSocket not connected');
       return;
     }
- 
+  
     try {
+      // Add user message to store for immediate display
+      addMessage({
+        id: `msg_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        conversationId: conversationId,
+        senderType: 'user',
+        agentName: 'user',
+        content: message,
+        timestamp: new Date(),
+      });
+
+      // Send via WebSocket using the action format backend expects
       const payload = {
-        type: 'chat_message',
-        message: message,
+        action: 'chat',
+        content: message,
         conversation_id: conversationId,
         sender_id: 'user',
         timestamp: new Date().toISOString(),
       };
- 
+  
       wsInstance.send(JSON.stringify(payload));
       console.log('[App] Message sent:', message);
     } catch (error) {

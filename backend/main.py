@@ -284,11 +284,14 @@ async def websocket_endpoint(websocket: WebSocket):
                             )
 
                         # Save to memory
-                        await memory.save_memory(
-                            category="conversation",
-                            content=f"User: {user_message}",
-                            created_by="user",
-                        )
+                        try:
+                            await app.state.memory_service.save_memory(
+                                category="conversation",
+                                content=f"User: {user_message}",
+                                created_by="user",
+                            )
+                        except Exception as mem_err:
+                            logger.warning(f"Failed to save to memory: {mem_err}")
 
                         # Send completion status
                         await websocket.send_json(
