@@ -7,6 +7,7 @@ import VotingPanel from './components/VotingPanel';
 import ArchiveView from './components/ArchiveView';
 import AdminSettings from './components/AdminSettings';
 import DiscussionPanel from './components/DiscussionPanel';
+import TaskPanel from './components/TaskPanel';
 import Header from './components/Header';
 import MobileSidebar from './components/MobileSidebar';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -36,6 +37,12 @@ const App: React.FC = () => {
     addAgentResponse,
     activeTab,
     wsInstance,
+    isTaskPanelOpen,
+    setTaskPanelOpen,
+    startTaskExecution,
+    addTaskStep,
+    completeTaskExecution,
+    failTaskExecution,
   } = useConversationStore();
 
   // Fetch agents and team settings on mount
@@ -129,6 +136,44 @@ const App: React.FC = () => {
               // 토론 종료 알림
               setIsDiscussionOpen(false);
               setActiveDiscussionId(null);
+            } else if (data.type === 'task_start') {
+              // 에이전트 업무 시작
+              const store = useConversationStore.getState();
+              store.startTaskExecution(
+                data.agent_id,
+                data.agent_name,
+                data.task,
+              );
+              console.log('[Task] Started:', data.task);
+            } else if (data.type === 'task_step') {
+              // 업무 수행 단계 수신
+              const store = useConversationStore.getState();
+              store.addTaskStep(data.agent_id, {
+                type: data.step.type,
+                content: data.step.content,
+                tool_name: data.step.tool_name,
+                tool_args: data.step.tool_args,
+                success: data.step.success,
+              });
+            } else if (data.type === 'task_complete') {
+              // 업무 완료
+              const store = useConversationStore.getState();
+              store.completeTaskExecution(data.agent_id, data.final_response);
+              // 결과를 채팅 메시지로도 표시
+              addMessage({
+                id: `msg_task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                conversationId: conversationId,
+                senderType: 'agent',
+                agentName: data.agent_name,
+                content: `✅ **업무 완료**: ${data.task}\n\n${data.final_response}`,
+                timestamp: new Date(),
+              });
+              console.log('[Task] Complete:', data.agent_name);
+            } else if (data.type === 'task_error') {
+              // 업무 오류
+              const store = useConversationStore.getState();
+              store.failTaskExecution(data.agent_id, data.error);
+              console.error('[Task] Error:', data.error);
             }
           } catch (error) {
             console.error('[WebSocket] Failed to parse message:', error);
@@ -188,6 +233,28 @@ const App: React.FC = () => {
   const handleTabChange = (tab: 'dashboard' | 'archive' | 'settings') => {
     useConversationStore.getState().setActiveTab(tab);
   };
+
+  const handleExecuteTask = (
+    agentId: string,
+    agentName: string,
+    agentRole: string,
+    soulPrompt: string,
+    task: string,
+  ) => {
+    if (!wsInstance || wsInstance.readyState !== WebSocket.OPEN) {
+      console.error('[App] WebSocket not connected for task execution');
+      return;
+    }
+    wsInstance.send(JSON.stringify({
+      action: 'execute_task',
+      task,
+      agent_id: agentId,
+      agent_name: agentName,
+      agent_role: agentRole,
+      soul_prompt: soulPrompt,
+    }));
+    console.log('[App] Task dispatched to agent:', agentName, '-', task);
+  };
  
   return (
     <div className={`
@@ -230,8 +297,30 @@ const App: React.FC = () => {
             </ErrorBoundary>
           </div>
 
-          {/* Right Panel - Operations Hub */}
-          <VotingPanel />
+          {/* Right Panel - Task Panel or Voting Panel */}
+          {isTaskPanelOpen ? (
+            <div className="w-80 flex-shrink-0 hidden lg:block">
+              <TaskPanel
+                onClose={() => setTaskPanelOpen(false)}
+                onExecuteTask={handleExecuteTask}
+              />
+            </div>
+          ) : (
+            <div className="hidden lg:flex flex-col">
+              {/* Task Panel Toggle Button */}
+              <button
+                onClick={() => setTaskPanelOpen(true)}
+                className="m-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700
+                  text-slate-300 hover:bg-slate-700 hover:text-white transition-colors
+                  text-xs font-medium flex items-center gap-1.5 whitespace-nowrap"
+                title="업무 지시 패널 열기"
+              >
+                <span>⚡</span>
+                <span>업무 지시</span>
+              </button>
+              <VotingPanel />
+            </div>
+          )}
         </div>
       ) : activeTab === 'archive' ? (
         <ArchiveView />

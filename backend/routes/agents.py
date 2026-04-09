@@ -30,13 +30,6 @@ def set_ws_manager(manager):
     ws_manager = manager
 
 
-@router.get("/", response_model=List[AgentResponse])
-def list_agents(db: Session = Depends(get_db)):
-    """에이전트 목록 조회"""
-    agents = db.query(Agent).all()
-    return agents
-
-
 @router.get("/{agent_id}", response_model=AgentResponse)
 def get_agent(agent_id: str, db: Session = Depends(get_db)):
     """특정 에이전트 조회"""

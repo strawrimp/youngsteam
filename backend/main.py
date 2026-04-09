@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 import json
 import logging
+import asyncio
 
 from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -187,8 +188,7 @@ app.add_middleware(
 )
 
 
-# Register new routes
-from routes import projects_router, agents_router, discussions_router, votes_router
+from services.agent_executor import AgentTaskExecutor, TaskStep
 
 app.include_router(projects_router)
 app.include_router(agents_router)
@@ -309,6 +309,81 @@ async def websocket_endpoint(websocket: WebSocket):
                             }
                         )
 
+                elif action == "execute_task":
+                    # 에이전트 업무 실행 (Tool Use)
+                    task = message.get("task", "").strip()
+                    agent_id = message.get("agent_id", "")
+                    agent_name = message.get("agent_name", "에이전트")
+                    agent_role = message.get("agent_role", "developer")
+                    soul_prompt = message.get("soul_prompt", "")
+
+                    if not task:
+                        await websocket.send_json({"error": "task is required"})
+                        continue
+
+                    # Send start event
+                    await websocket.send_json(
+                        {
+                            "type": "task_start",
+                            "agent_id": agent_id,
+                            "agent_name": agent_name,
+                            "task": task,
+                        }
+                    )
+
+                    # Create executor with real-time step streaming
+                    async def send_step(step: TaskStep):
+                        try:
+                            await websocket.send_json(
+                                {
+                                    "type": "task_step",
+                                    "agent_id": agent_id,
+                                    "agent_name": agent_name,
+                                    "step": {
+                                        "type": step.type,
+                                        "content": step.content,
+                                        "tool_name": step.tool_name,
+                                        "tool_args": step.tool_args,
+                                        "success": step.success,
+                                    },
+                                }
+                            )
+                        except Exception:
+                            pass  # Client disconnected
+
+                    executor = AgentTaskExecutor(
+                        deepseek_service=app.state.deepseek_service,
+                        on_step=lambda step: asyncio.ensure_future(send_step(step)),
+                    )
+
+                    try:
+                        result = await executor.execute_task(
+                            task=task,
+                            agent_name=agent_name,
+                            agent_role=agent_role,
+                            soul_prompt=soul_prompt,
+                        )
+
+                        await websocket.send_json(
+                            {
+                                "type": "task_complete",
+                                "agent_id": agent_id,
+                                "agent_name": agent_name,
+                                "task": task,
+                                "final_response": result.final_response,
+                                "result": result.to_dict(),
+                            }
+                        )
+                    except Exception as e:
+                        logger.error(f"Task execution error: {e}")
+                        await websocket.send_json(
+                            {
+                                "type": "task_error",
+                                "agent_id": agent_id,
+                                "error": str(e),
+                            }
+                        )
+
                 else:
                     await websocket.send_json({"error": f"Unknown action: {action}"})
 
@@ -329,6 +404,40 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"WebSocket error: {type(e).__name__}: {e}")
         app.state.ws_manager.disconnect(websocket)
         logger.info(f"WebSocket client disconnected due to error")
+
+
+# REST API: Execute task with tools
+@app.post("/api/tasks/execute")
+async def execute_task_rest(request_data: dict, db: Session = Depends(get_db)):
+    """Execute a task for a specific agent using Tool Use.
+
+    Body: { task, agent_id, agent_name, agent_role, soul_prompt? }
+    Returns: { success, final_response, steps, agent_name }
+    """
+    task = request_data.get("task", "").strip()
+    agent_id = request_data.get("agent_id", "")
+    agent_name = request_data.get("agent_name", "에이전트")
+    agent_role = request_data.get("agent_role", "developer")
+    soul_prompt = request_data.get("soul_prompt", "")
+
+    if not task:
+        raise HTTPException(status_code=400, detail="task is required")
+
+    executor = AgentTaskExecutor(
+        deepseek_service=app.state.deepseek_service,
+    )
+
+    try:
+        result = await executor.execute_task(
+            task=task,
+            agent_name=agent_name,
+            agent_role=agent_role,
+            soul_prompt=soul_prompt,
+        )
+        return result.to_dict()
+    except Exception as e:
+        logger.error(f"Task execution REST error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # REST API endpoints for chat

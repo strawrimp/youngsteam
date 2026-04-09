@@ -11,6 +11,25 @@ import {
   InviteSuggestion
 } from './types';
 
+// Task execution types
+export interface TaskStep {
+  type: 'thinking' | 'tool_call' | 'tool_result' | 'response';
+  content: string;
+  tool_name?: string;
+  tool_args?: Record<string, unknown>;
+  success?: boolean;
+}
+
+export interface TaskExecution {
+  agentId: string;
+  agentName: string;
+  task: string;
+  status: 'running' | 'complete' | 'error';
+  steps: TaskStep[];
+  finalResponse?: string;
+  startedAt: Date;
+}
+
 interface ConversationStore {
   // Conversation state
   conversationId: string;
@@ -82,6 +101,20 @@ interface ConversationStore {
   addPendingInvite: (invite: InviteSuggestion) => void;
   removePendingInvite: (agentId: string) => void;
   clearPendingInvites: () => void;
+
+  // Task execution state
+  taskExecutions: Record<string, TaskExecution>;
+  activeTaskAgentId: string | null;
+  isTaskPanelOpen: boolean;
+
+  // Task execution actions
+  startTaskExecution: (agentId: string, agentName: string, task: string) => void;
+  addTaskStep: (agentId: string, step: TaskStep) => void;
+  completeTaskExecution: (agentId: string, finalResponse: string) => void;
+  failTaskExecution: (agentId: string, error: string) => void;
+  setActiveTaskAgentId: (agentId: string | null) => void;
+  setTaskPanelOpen: (open: boolean) => void;
+  clearTaskExecution: (agentId: string) => void;
 }
 
 export const useConversationStore = create<ConversationStore>((set) => ({
@@ -168,6 +201,84 @@ export const useConversationStore = create<ConversationStore>((set) => ({
       pendingInvites: state.pendingInvites.filter((i) => i.agent_id !== agentId),
     })),
   clearPendingInvites: () => set({ pendingInvites: [] }),
+
+  // Task execution state
+  taskExecutions: {},
+  activeTaskAgentId: null,
+  isTaskPanelOpen: false,
+
+  // Task execution actions
+  startTaskExecution: (agentId, agentName, task) =>
+    set((state) => ({
+      taskExecutions: {
+        ...state.taskExecutions,
+        [agentId]: {
+          agentId,
+          agentName,
+          task,
+          status: 'running',
+          steps: [],
+          startedAt: new Date(),
+        },
+      },
+      activeTaskAgentId: agentId,
+      isTaskPanelOpen: true,
+    })),
+
+  addTaskStep: (agentId, step) =>
+    set((state) => {
+      const existing = state.taskExecutions[agentId];
+      if (!existing) return state;
+      return {
+        taskExecutions: {
+          ...state.taskExecutions,
+          [agentId]: {
+            ...existing,
+            steps: [...existing.steps, step],
+          },
+        },
+      };
+    }),
+
+  completeTaskExecution: (agentId, finalResponse) =>
+    set((state) => {
+      const existing = state.taskExecutions[agentId];
+      if (!existing) return state;
+      return {
+        taskExecutions: {
+          ...state.taskExecutions,
+          [agentId]: {
+            ...existing,
+            status: 'complete',
+            finalResponse,
+          },
+        },
+      };
+    }),
+
+  failTaskExecution: (agentId, error) =>
+    set((state) => {
+      const existing = state.taskExecutions[agentId];
+      if (!existing) return state;
+      return {
+        taskExecutions: {
+          ...state.taskExecutions,
+          [agentId]: {
+            ...existing,
+            status: 'error',
+            finalResponse: error,
+          },
+        },
+      };
+    }),
+
+  setActiveTaskAgentId: (agentId) => set({ activeTaskAgentId: agentId }),
+  setTaskPanelOpen: (open) => set({ isTaskPanelOpen: open }),
+  clearTaskExecution: (agentId) =>
+    set((state) => {
+      const { [agentId]: _, ...rest } = state.taskExecutions;
+      return { taskExecutions: rest };
+    }),
 }));
 
 // Expose store to window for dev/demo injection

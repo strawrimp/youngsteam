@@ -3,7 +3,7 @@
 import httpx
 import json
 import time
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from config import settings
 import logging
 
@@ -263,3 +263,102 @@ class DeepSeekService:
     def reset_usage_stats(self):
         """Reset model usage statistics."""
         self.model_usage = {"v4": 0, "r1": 0}
+
+    async def call_model_with_tools(
+        self,
+        system_prompt: str,
+        user_message: str,
+        tools: List[Dict[str, Any]],
+        conversation_history: Optional[List[Dict]] = None,
+        task_type: str = "default",
+        complexity: float = 0.0,
+    ) -> Dict[str, Any]:
+        """Call DeepSeek model with tool/function calling support.
+
+        Args:
+            system_prompt: System prompt
+            user_message: User message
+            tools: List of tool schemas (OpenAI function calling format)
+            conversation_history: Previous conversation
+            task_type: Task type for model selection
+            complexity: Complexity score for model selection
+
+        Returns:
+            Dict with 'content' (str), 'tool_calls' (list), 'model_used' (str)
+        """
+        if not self.api_key:
+            return {
+                "content": f"[Mock] {user_message}",
+                "tool_calls": [],
+                "model_used": "v4",
+            }
+
+        try:
+            use_r1 = self._should_use_r1(task_type, complexity)
+            # R1 doesn't support function calling - use V4 for tool use
+            model_name = self.MODELS["v4"]
+            model_type = "v4"
+            self.model_usage[model_type] += 1
+
+            messages = [{"role": "system", "content": system_prompt}]
+            if conversation_history:
+                messages.extend(conversation_history)
+            messages.append({"role": "user", "content": user_message})
+
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            }
+
+            payload = {
+                "model": model_name,
+                "messages": messages,
+                "temperature": self.temperature,
+                "top_p": 0.95,
+                "tools": tools,
+                "tool_choice": "auto",
+            }
+
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    self.BASE_URL,
+                    json=payload,
+                    headers=headers,
+                )
+                response.raise_for_status()
+                data = response.json()
+
+            if "choices" not in data or not data["choices"]:
+                return {"content": "[Error] No response", "tool_calls": [], "model_used": model_type}
+
+            message = data["choices"][0]["message"]
+            content = message.get("content") or ""
+            tool_calls = message.get("tool_calls") or []
+
+            # Parse tool calls
+            parsed_tool_calls = []
+            for tc in tool_calls:
+                if tc.get("type") == "function":
+                    try:
+                        args = json.loads(tc["function"].get("arguments", "{}"))
+                    except json.JSONDecodeError:
+                        args = {}
+                    parsed_tool_calls.append({
+                        "id": tc.get("id", ""),
+                        "name": tc["function"]["name"],
+                        "arguments": args,
+                    })
+
+            return {
+                "content": content,
+                "tool_calls": parsed_tool_calls,
+                "model_used": model_type,
+                "raw_message": message,
+            }
+
+        except httpx.TimeoutException:
+            logger.error("DeepSeek tool call timeout")
+            return {"content": "[Error] Timeout", "tool_calls": [], "model_used": "v4"}
+        except Exception as e:
+            logger.error(f"DeepSeek tool call error: {e}")
+            return {"content": f"[Error] {str(e)}", "tool_calls": [], "model_used": "v4"}
