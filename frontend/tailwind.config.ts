@@ -19,19 +19,19 @@ const config: Config = {
         'surface-container-highest': '#d9dde0',
         'surface-dim': '#d0d5d8',
         'surface-variant': '#d9dde0',
-        'surface-tint': '#0050d4',
+        'surface-tint': '#475569',
         
-        // === Primary Colors (Executive Blue) ===
-        'primary': '#0050d4',
-        'primary-dim': '#0046bb',
-        'primary-fixed': '#7b9cff',
-        'primary-fixed-dim': '#658eff',
-        'primary-container': '#7b9cff',
-        'on-primary': '#f1f2ff',
-        'on-primary-container': '#001e5a',
-        'on-primary-fixed': '#000000',
-        'on-primary-fixed-variant': '#00266e',
-        'inverse-primary': '#618bff',
+        // === Primary Colors (Slate Gray) ===
+        'primary': '#475569',
+        'primary-dim': '#334155',
+        'primary-fixed': '#94a3b8',
+        'primary-fixed-dim': '#64748b',
+        'primary-container': '#94a3b8',
+        'on-primary': '#f8fafc',
+        'on-primary-container': '#1e293b',
+        'on-primary-fixed': '#0f172a',
+        'on-primary-fixed-variant': '#1e293b',
+        'inverse-primary': '#94a3b8',
         
         // === Secondary Colors (Creative Purple) ===
         'secondary': '#702ae1',
@@ -75,7 +75,7 @@ const config: Config = {
         
         // === Agent Role Colors ===
         'agent': {
-          manager: '#0050d4',      // Primary Blue
+          manager: '#475569',      // Slate Gray
           developer: '#10b981',    // Emerald Green
           designer: '#702ae1',     // Secondary Purple
           researcher: '#f59e0b',   // Amber
@@ -131,8 +131,8 @@ const config: Config = {
         'lg': '0 4px 8px rgba(0, 0, 0, 0.08)',
         'xl': '0 8px 16px rgba(0, 0, 0, 0.1)',
         '2xl': '0 16px 32px rgba(0, 0, 0, 0.12)',
-        'glass': '0px 20px 40px rgba(0, 80, 212, 0.08)',
-        'primary': '0 4px 12px rgba(0, 80, 212, 0.2)',
+        'glass': '0px 20px 40px rgba(71, 85, 105, 0.08)',
+        'primary': '0 4px 12px rgba(71, 85, 105, 0.2)',
         'card': '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)',
       },
       

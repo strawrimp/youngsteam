@@ -18,6 +18,7 @@ MAX_TOOL_ROUNDS = 8  # Max tool call iterations to prevent infinite loops
 @dataclass
 class TaskStep:
     """A single step in task execution."""
+
     type: str  # 'thinking', 'tool_call', 'tool_result', 'response'
     content: str
     tool_name: str = ""
@@ -28,6 +29,7 @@ class TaskStep:
 @dataclass
 class TaskExecutionResult:
     """Final result of executing a task."""
+
     success: bool
     final_response: str
     steps: List[TaskStep]
@@ -155,15 +157,27 @@ class AgentTaskExecutor:
                     self.on_step(step)
 
             # Add assistant message to history
-            messages.append({
-                "role": "assistant",
-                "content": content or "",
-                **({"tool_calls": result.get("raw_message", {}).get("tool_calls", [])} if tool_calls else {}),
-            })
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": content or "",
+                    **(
+                        {
+                            "tool_calls": result.get("raw_message", {}).get(
+                                "tool_calls", []
+                            )
+                        }
+                        if tool_calls
+                        else {}
+                    ),
+                }
+            )
 
             # If no tool calls, we're done
             if not tool_calls:
-                logger.info(f"[{agent_name}] Task complete after {round_num + 1} rounds")
+                logger.info(
+                    f"[{agent_name}] Task complete after {round_num + 1} rounds"
+                )
                 return TaskExecutionResult(
                     success=True,
                     final_response=content,
@@ -201,7 +215,9 @@ class AgentTaskExecutor:
                     )
                 else:
                     try:
-                        logger.info(f"[{agent_name}] Calling tool: {tool_name}({tool_args})")
+                        logger.info(
+                            f"[{agent_name}] Calling tool: {tool_name}({tool_args})"
+                        )
                         tool_result = await tool.execute(**tool_args)
                     except Exception as e:
                         logger.error(f"Tool execution error: {e}")
@@ -223,12 +239,14 @@ class AgentTaskExecutor:
                 if self.on_step:
                     self.on_step(result_step)
 
-                tool_results_for_message.append({
-                    "tool_call_id": tool_id,
-                    "role": "tool",
-                    "name": tool_name,
-                    "content": tool_result.to_string(),
-                })
+                tool_results_for_message.append(
+                    {
+                        "tool_call_id": tool_id,
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": tool_result.to_string(),
+                    }
+                )
 
             # Add tool results to message history
             messages.extend(tool_results_for_message)
@@ -258,10 +276,12 @@ class AgentTaskExecutor:
                 if self.on_step:
                     self.on_step(step)
 
-            messages.append({
-                "role": "assistant",
-                "content": content or "",
-            })
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": content or "",
+                }
+            )
 
             if not next_tool_calls:
                 logger.info(f"[{agent_name}] Task complete with tools")
@@ -307,6 +327,7 @@ class AgentTaskExecutor:
 다음 도구들을 활용하여 업무를 수행하세요:
 - **web_search**: 최신 정보, 뉴스, 사실 확인이 필요할 때 사용
 - **execute_python**: 계산, 데이터 분석, 알고리즘 구현이 필요할 때 사용
+- **youtube_transcript**: YouTube 영상의 자막을 추출하고 분석해야 할 때 사용. YouTube URL이 포함된 요청이나 영상 내용 분석 요청 시 활용하세요.
 
 업무 완료 후 결과를 명확하고 구조적으로 정리하여 보고하세요.
 한국어로 응답하세요."""
