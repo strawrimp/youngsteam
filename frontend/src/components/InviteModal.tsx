@@ -58,7 +58,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
               </div>
 
               {/* Agent Info */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-4">
+              <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20 rounded-lg p-4 mb-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="text-2xl">
                     {suggestion.agent_name?.charAt(0) === '김' ? '👔' : 
@@ -80,7 +80,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
                     <p className="mt-1">{suggestion.reason}</p>
                   </div>
                   <div className="mt-2 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/30 text-slate-700 dark:text-slate-300">
                       신뢰도: {Math.round(suggestion.confidence * 100)}%
                     </span>
                   </div>
@@ -97,7 +97,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
                 </button>
                 <button
                   onClick={onAccept}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-slate-600 text-white font-medium hover:bg-slate-500 transition-colors shadow-lg shadow-slate-500/30"
                 >
                   초대하기
                 </button>

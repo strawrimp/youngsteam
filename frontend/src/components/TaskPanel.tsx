@@ -26,7 +26,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 const STEP_COLORS: Record<string, string> = {
-  thinking: 'border-blue-400 bg-blue-950/40',
+  thinking: 'border-slate-400 bg-slate-950/40',
   tool_call: 'border-amber-400 bg-amber-950/40',
   tool_result: 'border-emerald-400 bg-emerald-950/40',
   response: 'border-violet-400 bg-violet-950/40',
@@ -127,7 +127,7 @@ export default function TaskPanel({ onClose, onExecuteTask }: TaskPanelProps) {
   };
 
   const agentColor: Record<string, string> = {
-    manager: 'text-blue-400',
+    manager: 'text-slate-400',
     developer: 'text-emerald-400',
     designer: 'text-violet-400',
     researcher: 'text-amber-400',
@@ -173,7 +173,7 @@ export default function TaskPanel({ onClose, onExecuteTask }: TaskPanelProps) {
                   flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
                   border transition-all
                   ${selectedAgentId === String(agent.id)
-                    ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                    ? 'border-slate-500 bg-slate-500/20 text-slate-300'
                     : 'border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500'
                   }
                 `}
@@ -192,11 +192,11 @@ export default function TaskPanel({ onClose, onExecuteTask }: TaskPanelProps) {
             value={taskInput}
             onChange={(e) => setTaskInput(e.target.value)}
             placeholder="예: 2024년 AI 트렌드를 조사해서 요약해줘&#10;예: 피보나치 수열 1000번째 값을 계산해줘&#10;예: 우리 앱에 필요한 로그인 API 설계를 해줘"
-            rows={3}
+             rows={3}
             disabled={isRunning}
             className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2
               text-sm text-slate-200 placeholder-slate-500
-              focus:outline-none focus:border-blue-500
+              focus:outline-none focus:border-slate-500
               disabled:opacity-50 resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -211,7 +211,7 @@ export default function TaskPanel({ onClose, onExecuteTask }: TaskPanelProps) {
           type="submit"
           disabled={!taskInput.trim() || !selectedAgentId || isRunning}
           className="w-full py-2 rounded-lg text-sm font-semibold
-            bg-blue-600 hover:bg-blue-500 text-white
+            bg-slate-600 hover:bg-slate-500 text-white
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-colors flex items-center justify-center gap-2"
         >
@@ -256,8 +256,8 @@ export default function TaskPanel({ onClose, onExecuteTask }: TaskPanelProps) {
               <div className="text-sm text-slate-200 font-medium">{activeExecution.task}</div>
               {activeExecution.status === 'running' && (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  <span className="text-xs text-blue-400">진행 중...</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
+                  <span className="text-xs text-slate-400">진행 중...</span>
                 </div>
               )}
               {activeExecution.status === 'complete' && (

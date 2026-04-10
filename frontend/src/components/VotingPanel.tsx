@@ -102,10 +102,10 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
             onClick={() => setActiveTab('vote')}
             className={`flex-1 rounded-md py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${
               activeTab === 'vote'
-                ? isDark 
-                  ? 'bg-slate-700 shadow-sm text-blue-400'
+                ? isDark
+                  ? 'bg-slate-700 shadow-sm text-slate-300'
                   : 'bg-white shadow-sm text-primary'
-                : isDark 
+                : isDark
                   ? 'text-slate-500 hover:text-slate-300'
                   : 'text-slate-400 hover:text-slate-600'
             }`}
@@ -116,10 +116,10 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
             onClick={() => setActiveTab('debate')}
             className={`flex-1 rounded-md py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${
               activeTab === 'debate'
-                ? isDark 
-                  ? 'bg-slate-700 shadow-sm text-blue-400'
+                ? isDark
+                  ? 'bg-slate-700 shadow-sm text-slate-300'
                   : 'bg-white shadow-sm text-primary'
-                : isDark 
+                : isDark
                   ? 'text-slate-500 hover:text-slate-300'
                   : 'text-slate-400 hover:text-slate-600'
             }`}
@@ -130,10 +130,10 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
             onClick={() => setActiveTab('stats')}
             className={`flex-1 rounded-md py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${
               activeTab === 'stats'
-                ? isDark 
-                  ? 'bg-slate-700 shadow-sm text-blue-400'
+                ? isDark
+                  ? 'bg-slate-700 shadow-sm text-slate-300'
                   : 'bg-white shadow-sm text-primary'
-                : isDark 
+                : isDark
                   ? 'text-slate-500 hover:text-slate-300'
                   : 'text-slate-400 hover:text-slate-600'
             }`}
@@ -172,7 +172,7 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
               <div className={`h-1.5 w-full rounded-full overflow-hidden flex ${
                 isDark ? 'bg-slate-800' : 'bg-slate-100'
               }`}>
-                <div className="bg-blue-500 h-full w-[45%]"></div>
+                <div className="bg-slate-500 h-full w-[45%]"></div>
                 <div className="bg-emerald-500 h-full w-[25%]"></div>
                 <div className="bg-purple-500 h-full w-[12%]"></div>
               </div>
@@ -190,7 +190,7 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
                   {Object.entries(agentResponses).map(([agentId, response]) => {
                     const agent = agents.find(a => a.id === agentId);
                     const colorMap: Record<string, string> = {
-                      manager: isDark ? 'bg-blue-900/30 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-100 text-blue-700',
+                      manager: isDark ? 'bg-slate-900/30 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-700',
                       developer: isDark ? 'bg-emerald-900/30 border-emerald-800 text-emerald-300' : 'bg-emerald-50 border-emerald-100 text-emerald-700',
                       designer: isDark ? 'bg-purple-900/30 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-100 text-purple-700',
                       researcher: isDark ? 'bg-amber-900/30 border-amber-800 text-amber-300' : 'bg-amber-50 border-amber-100 text-amber-700',
@@ -309,7 +309,7 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
                     ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   : isDark
-                    ? 'bg-blue-600 text-white hover:bg-blue-500 active:scale-95'
+                    ? 'bg-slate-600 text-white hover:bg-slate-500 active:scale-95'
                     : 'bg-primary text-white hover:brightness-110 active:scale-95'
               }`}
             >
@@ -471,7 +471,7 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
                   ? 'bg-slate-800 border-slate-700'
                   : 'bg-slate-50 border-slate-100'
               }`}>
-                <p className={`text-xs font-bold mb-1 ${isDark ? 'text-blue-400' : 'text-primary'}`}>{activeContext.title}</p>
+                <p className={`text-xs font-bold mb-1 ${isDark ? 'text-slate-400' : 'text-primary'}`}>{activeContext.title}</p>
                 <p className={`text-[10px] leading-normal ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{activeContext.description}</p>
               </div>
             </div>

@@ -264,7 +264,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         isDark ? 'bg-slate-900' : 'bg-white'
       }`}>
         {/* Chat Stream Area */}
-        <div className={`flex-1 overflow-y-auto p-8 flex flex-col gap-8 no-scrollbar min-h-0 ${
+        <div className={`flex-1 overflow-y-auto p-10 flex flex-col gap-12 no-scrollbar min-h-0 ${
           isDark ? 'bg-slate-900/50' : 'bg-slate-50/30'
         }`}>
           {/* Date Label */}
