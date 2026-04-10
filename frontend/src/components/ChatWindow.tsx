@@ -7,6 +7,15 @@ import { useConversationStore } from '../store';
 import { api } from '../api';
 import { InviteSuggestion, MentionCandidate } from '../types';
 import { useTheme } from '../hooks/useTheme';
+import { getAgentConfig } from '../agentConfig';
+
+// 예시 프롬프트
+const EXAMPLE_PROMPTS = [
+  '이번 스프린트에서 가장 중요한 기능 3가지를 우선순위별로 정해주세요',
+  '새로운 랜딩 페이지 디자인 컨셉을 제안해 주세요',
+  '경쟁사 최신 트렌드를 분석해 주세요',
+  '현재 아키텍처의 개선점을 찾아주세요',
+];
 
 export interface ChatMessage {
   id: string;
@@ -251,11 +260,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <>
-      <main className={`flex-1 flex flex-col min-w-0 ${
+      <main className={`flex-1 flex flex-col min-w-0 min-h-0 ${
         isDark ? 'bg-slate-900' : 'bg-white'
       }`}>
         {/* Chat Stream Area */}
-        <div className={`flex-1 overflow-y-auto p-8 flex flex-col gap-8 no-scrollbar ${
+        <div className={`flex-1 overflow-y-auto p-8 flex flex-col gap-8 no-scrollbar min-h-0 ${
           isDark ? 'bg-slate-900/50' : 'bg-slate-50/30'
         }`}>
           {/* Date Label */}
@@ -280,14 +289,95 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
           {/* Empty state */}
           {displayMessages.length === 0 && !isTyping && (
-            <div className={`flex-1 flex flex-col items-center justify-center gap-3 py-16 ${
+            <div className={`flex-1 flex flex-col items-center justify-center gap-6 py-16 px-4 ${
               isDark ? 'text-slate-500' : 'text-slate-400'
             }`}>
-              <span className="material-symbols-outlined text-5xl">forum</span>
-              <p className="text-sm font-medium">경영진 팀에게 명령을 내리세요</p>
-              <p className={`text-xs ${
-                isDark ? 'text-slate-600' : 'text-slate-400'
-              }`}>@멘션으로 특정 에이전트를 호출할 수 있습니다</p>
+              {/* 웰컴 아이콘 */}
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center ${
+                isDark ? 'bg-slate-800' : 'bg-slate-100'
+              }`}>
+                <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: '"FILL" 0, "wght" 300' }}>
+                  smart_toy
+                </span>
+              </div>
+              
+              {/* 웰컴 메시지 */}
+              <div className="text-center max-w-md">
+                <h3 className={`text-lg font-bold mb-2 ${
+                  isDark ? 'text-slate-200' : 'text-slate-700'
+                }`}>
+                  AI 경영진 팀과 협업하세요
+                </h3>
+                <p className={`text-sm leading-relaxed ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}>
+                  당신의 AI 팀이 프로젝트의 모든 측면에서 전문적인 인사이트를 제공합니다.
+                  아래 에이전트에게 직접 명령을 내리거나, @멘션으로 특정 팀원을 호출할 수 있습니다.
+                </p>
+              </div>
+
+              {/* 에이전트 소개 카드 */}
+              <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
+                {agents.length > 0 ? agents.map((agent) => {
+                  const config = getAgentConfig(agent.id, agents);
+                  return (
+                    <div
+                      key={agent.id}
+                      className={`rounded-xl p-3 border transition-all hover:shadow-sm ${
+                        isDark 
+                          ? 'bg-slate-800/50 border-slate-700/50' 
+                          : 'bg-white border-slate-200/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">{config.emoji}</span>
+                        <span className={`text-sm font-bold ${
+                          isDark ? 'text-slate-200' : 'text-slate-700'
+                        }`}>
+                          {config.display_name}
+                        </span>
+                      </div>
+                      <p className={`text-[11px] leading-relaxed ${
+                        isDark ? 'text-slate-400' : 'text-slate-500'
+                      }`}>
+                        {config.description || '팀원입니다'}
+                      </p>
+                    </div>
+                  );
+                }) : (
+                  // 에이전트가 아직 로드되지 않은 경우
+                  <div className={`col-span-2 text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className="text-sm">에이전트 팀을 불러오는 중...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 예시 프롬프트 */}
+              <div className="w-full max-w-lg">
+                <p className={`text-[10px] font-bold uppercase tracking-wider mb-3 text-center ${
+                  isDark ? 'text-slate-500' : 'text-slate-400'
+                }`}>
+                  이렇게 물어보세요
+                </p>
+                <div className="grid grid-cols-1 gap-2">
+                  {EXAMPLE_PROMPTS.map((prompt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setInputValue(prompt);
+                        inputRef.current?.focus();
+                      }}
+                      className={`text-left text-xs px-4 py-2.5 rounded-lg border transition-all hover:shadow-sm ${
+                        isDark
+                          ? 'bg-slate-800/30 border-slate-700/50 text-slate-400 hover:bg-slate-800/60 hover:text-slate-300'
+                          : 'bg-white border-slate-200/80 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      }`}
+                    >
+                      💬 "{prompt}"
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -351,7 +441,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     ? 'text-slate-100 placeholder-slate-500' 
                     : 'text-slate-900 placeholder-slate-400'
                 }`}
-                placeholder="경영진 팀에게 명령을 내리세요... (@멘션 가능)"
+                placeholder="팀에게 질문하거나 명령을 내려주세요... (@멘션으로 특정 에이전트 호출)"
               />
               
               {/* Mention Dropdown */}

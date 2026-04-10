@@ -1,5 +1,6 @@
 import React from 'react';
 import { Agent, AgentResponse } from '../types';
+import { getAgentConfig } from '../agentConfig';
 
 interface AgentCardProps {
   agent: Agent;
@@ -28,10 +29,20 @@ const AGENT_LABELS: Record<string, string> = {
   researcher: '연구원',
 };
 
+const AGENT_DESCRIPTIONS: Record<string, string> = {
+  manager: '프로젝트 총괄 · 팀 조율 · 의사결정',
+  developer: '아키텍처 설계 · 핵심 구현 · 코드 리뷰',
+  designer: 'UX 설계 · 비주얼 디자인 · 브랜드 관리',
+  researcher: '기술 분석 · 시장 조사 · 인사이트 도출',
+};
+
 export const AgentCard: React.FC<AgentCardProps> = ({ agent, response, isTyping }) => {
+  const agents = undefined; // standalone card doesn't need agents list
+  const config = getAgentConfig(agent.id);
   const agentColor = AGENT_COLORS[agent.role] || '#64748b';
   const agentEmoji = AGENT_EMOJIS[agent.role] || '🤖';
   const agentLabel = AGENT_LABELS[agent.role] || agent.role;
+  const agentDescription = AGENT_DESCRIPTIONS[agent.role] || config.description || '';
   const hasResponse = !!response;
 
   return (
@@ -52,6 +63,11 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, response, isTyping 
             {agent.name}
           </h4>
           <p className="text-xs dark:text-slate-400 text-slate-600">{agentLabel}</p>
+          {agentDescription && (
+            <p className="text-[11px] dark:text-slate-500 text-slate-400 mt-1 leading-relaxed">
+              {agentDescription}
+            </p>
+          )}
         </div>
       </div>
 

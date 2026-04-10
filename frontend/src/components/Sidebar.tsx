@@ -38,12 +38,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           <h2 className={`font-headline font-bold leading-tight ${
             isDark ? 'text-slate-100' : 'text-slate-900'
           }`}>
-            {teamSettings?.team_name || "Young's Team"}
+            {teamSettings?.team_name || "AI 경영진 팀"}
           </h2>
           <p className={`text-xs font-semibold tracking-wide ${
             isDark ? 'text-slate-500' : 'text-slate-500'
           }`}>
-            {teamSettings?.team_subtitle || "AI Agents Online"}
+            {teamSettings?.team_subtitle || "다중 에이전트 협업 시스템"}
           </p>
         </div>
       </div>
@@ -88,23 +88,31 @@ const Sidebar: React.FC<SidebarProps> = ({
           };
           
           return (
-            <button
-              key={agent.id}
-              onClick={() => onAgentSelect?.(agent.id)}
-              className={`
-                flex items-center gap-3 rounded-xl px-4 py-3
-                font-semibold tracking-wide transition-all duration-200
-                ${getActiveClasses()}
-              `}
-            >
-              <span 
-                className={`material-symbols-outlined text-xl ${getIconColorClass(agent.role, isActive)}`}
-                style={{ fontVariationSettings: '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24' }}
+            <React.Fragment key={agent.id}>
+              <button
+                onClick={() => onAgentSelect?.(agent.id)}
+                className={`
+                  flex items-center gap-3 rounded-xl px-4 py-3
+                  font-semibold tracking-wide transition-all duration-200
+                  ${getActiveClasses()}
+                `}
               >
-                {config.icon}
-              </span>
-              <span className="text-lg">{config.display_name}</span>
-            </button>
+                <span 
+                  className={`material-symbols-outlined text-xl ${getIconColorClass(agent.role, isActive)}`}
+                  style={{ fontVariationSettings: '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24' }}
+                >
+                  {config.icon}
+                </span>
+                <span className="text-lg">{config.display_name}</span>
+              </button>
+              {isActive && config.description && (
+                <p className={`text-[11px] leading-relaxed mt-1 px-4 pb-2 ${
+                  isDark ? 'text-slate-500' : 'text-slate-400'
+                }`}>
+                  {config.description}
+                </p>
+              )}
+            </React.Fragment>
           );
         })}
       </nav>

@@ -72,6 +72,10 @@ async def lifespan(app: FastAPI):
             else "   API Key: NOT SET"
         )
 
+        # Inject DeepSeekService into ConversationEngine for Tool Use
+        app.state.conversation_engine.set_deepseek_service(app.state.deepseek_service)
+        logger.info("✅ DeepSeekService injected into ConversationEngine")
+
         # Keep GLM service for backward compatibility
         app.state.glm_service = GLMService()
 
@@ -241,7 +245,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         )
 
                 elif action == "chat":
-                    # 기존 채팅 로직 유지
+                    # 채팅 + Tool Use 통합 로직
                     user_message = message.get("content", "").strip()
                     conversation_id = message.get("conversation_id")
 
@@ -251,12 +255,32 @@ async def websocket_endpoint(websocket: WebSocket):
                         )
                         continue
 
-                    # 기존 채팅 로직
+                    # 실시간 Tool Use step 스트리밍 콜백
+                    async def on_agent_step(agent_id: str, agent_name: str, step: dict):
+                        """Stream each tool use step to the frontend in real-time."""
+                        try:
+                            await websocket.send_json(
+                                {
+                                    "type": "agent_step",
+                                    "agent_id": agent_id,
+                                    "agent_name": agent_name,
+                                    "step": step,
+                                }
+                            )
+                        except Exception:
+                            pass  # Client disconnected
+
                     engine = app.state.conversation_engine
                     try:
-                        logger.info("About to call engine.process_message")
+                        logger.info(
+                            "About to call engine.process_message with Tool Use"
+                        )
                         result = await engine.process_message(
-                            conversation_id, user_message
+                            conversation_id,
+                            user_message,
+                            step_callback=lambda aid, aname, step: (
+                                asyncio.ensure_future(on_agent_step(aid, aname, step))
+                            ),
                         )
                         logger.info(
                             f"Engine returned with {len(result.get('agent_responses', {}))} responses"

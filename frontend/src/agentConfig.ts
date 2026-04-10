@@ -8,6 +8,7 @@ const DEFAULTS: Record<string, AgentDisplay> = {
     badge_text: '책임',
     icon: 'assignment_ind',
     color: '#4E7EBE',
+    description: '전체 프로젝트를 총괄하고 팀원 간 조율을 담당합니다. 일정 관리, 우선순위 결정, 최종 의사결정을 지원합니다.',
   },
   developer: {
     display_name: '개발부장',
@@ -15,6 +16,7 @@ const DEFAULTS: Record<string, AgentDisplay> = {
     badge_text: '기술',
     icon: 'terminal',
     color: '#4A9B6F',
+    description: '시스템 아키텍처 설계와 핵심 코드 구현을 담당합니다. 기술 스택 선정, 성능 최적화, 코드 리뷰를 수행합니다.',
   },
   designer: {
     display_name: '디자이너',
@@ -22,6 +24,7 @@ const DEFAULTS: Record<string, AgentDisplay> = {
     badge_text: '디자인',
     icon: 'palette',
     color: '#7C6BA8',
+    description: '사용자 경험 설계와 비주얼 디자인을 담당합니다. UI/UX 프로토타이핑, 디자인 시스템 구축, 브랜드 아이덴티티를 관리합니다.',
   },
   researcher: {
     display_name: '연구소장',
@@ -29,6 +32,7 @@ const DEFAULTS: Record<string, AgentDisplay> = {
     badge_text: '연구',
     icon: 'biotech',
     color: '#D4A055',
+    description: '최신 기술 동향 분석과 데이터 기반 인사이트를 제공합니다. 시장 조사, 경쟁사 분석, 기술 검증을 수행합니다.',
   },
 };
 
@@ -38,6 +42,7 @@ export interface AgentDisplay {
   badge_text: string;
   icon: string;
   color: string;
+  description?: string;
 }
 
 /**
@@ -87,6 +92,7 @@ export function getAgentConfig(
         badge_text: agent.badge_text || DEFAULTS[agent.role]?.badge_text || '',
         icon,
         color: agent.color || DEFAULTS[agent.role]?.color || '#6B7280',
+        description: DEFAULTS[agent.role]?.description || '',
       };
     }
   }
@@ -98,6 +104,7 @@ export function getAgentConfig(
     badge_text: '',
     icon: 'person',
     color: '#6B7280',
+    description: '',
   };
 }
 

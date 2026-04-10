@@ -152,9 +152,12 @@ const AdminSettings: React.FC = () => {
       
       {/* Team Settings Section */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
-        <h2 className="text-lg font-headline font-bold text-slate-700 mb-4">
+        <h2 className="text-lg font-headline font-bold text-slate-700 mb-1">
           팀 설정
         </h2>
+        <p className="text-sm text-slate-400 mb-4">
+          팀의 이름과 아이콘을 설정하여 대시보드를 개인화하세요
+        </p>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1">
@@ -195,7 +198,7 @@ const AdminSettings: React.FC = () => {
       
       {/* Agents Section */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-headline font-bold text-slate-700">
             에이전트 관리
           </h2>
@@ -206,6 +209,9 @@ const AdminSettings: React.FC = () => {
             + 새 팀원 추가
           </button>
         </div>
+        <p className="text-sm text-slate-400 mb-4">
+          AI 팀원들의 역할, 아이콘, 색상을 관리합니다. 변경사항은 즉시 적용됩니다.
+        </p>
         
         <div className="space-y-4">
           {agents.map((agent) => (
@@ -310,13 +316,28 @@ const AdminSettings: React.FC = () => {
       
       {/* System Info */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h2 className="text-lg font-headline font-bold text-slate-700 mb-4">
+        <h2 className="text-lg font-headline font-bold text-slate-700 mb-1">
           시스템 정보
         </h2>
-        <div className="text-sm text-slate-600 space-y-1">
-          <div>연결된 에이전트: {agents.length}명</div>
-          <div>LLM: DeepSeek (Hybrid)</div>
-          <div>DB: SQLite</div>
+        <p className="text-sm text-slate-400 mb-4">
+          현재 시스템의 실행 환경과 리소스 사용 현황입니다
+        </p>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-slate-50 rounded-lg p-4 text-center">
+            <span className="material-symbols-outlined text-2xl text-primary mb-1">group</span>
+            <p className="text-2xl font-bold text-slate-800">{agents.length}</p>
+            <p className="text-xs text-slate-500">활성 에이전트</p>
+          </div>
+          <div className="bg-slate-50 rounded-lg p-4 text-center">
+            <span className="material-symbols-outlined text-2xl text-emerald-600 mb-1">psychology</span>
+            <p className="text-sm font-bold text-slate-800">DeepSeek</p>
+            <p className="text-xs text-slate-500">LLM 엔진</p>
+          </div>
+          <div className="bg-slate-50 rounded-lg p-4 text-center">
+            <span className="material-symbols-outlined text-2xl text-purple-600 mb-1">database</span>
+            <p className="text-sm font-bold text-slate-800">SQLite</p>
+            <p className="text-xs text-slate-500">데이터베이스</p>
+          </div>
         </div>
       </div>
       

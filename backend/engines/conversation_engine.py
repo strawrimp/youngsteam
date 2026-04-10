@@ -3,16 +3,18 @@ ConversationEngine: Core conversation management system.
 
 Orchestrates multi-agent discussions:
 1. Accepts user message
-2. Routes to all agents for synchronous opinions
+2. Routes to all agents with Tool Use (web_search, execute_python)
 3. Stores conversation history
 4. Manages shared memory updates
 5. References past conversations for context
+
+All agent responses now go through AgentTaskExecutor for real tool usage.
 """
 
 import asyncio
 import logging
 import re
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Callable
 from datetime import datetime
 import uuid
 
@@ -31,12 +33,22 @@ class ConversationEngine:
         self.db = db_session
         self.conversation_service = None
         self.agents: Dict[str, "BaseAgent"] = {}
-        self.semaphore = asyncio.Semaphore(2)  # Rate limit to 2 concurrent GLM calls
+        self.semaphore = asyncio.Semaphore(2)  # Rate limit to 2 concurrent LLM calls
+        self.deepseek_service = None  # Injected via set_deepseek_service()
 
     def set_conversation_service(self, service):
         """Set conversation service for archive access."""
         self.conversation_service = service
         logger.info("ConversationService attached to ConversationEngine")
+
+    def set_deepseek_service(self, service):
+        """Set DeepSeek service for tool use execution.
+
+        Args:
+            service: DeepSeekService instance
+        """
+        self.deepseek_service = service
+        logger.info("DeepSeekService attached to ConversationEngine for Tool Use")
 
     def register_agent(self, agent_id: str, agent):
         """Register an agent with the engine.
@@ -182,14 +194,16 @@ class ConversationEngine:
         conversation_id: str,
         user_message: str,
         agent_ids: Optional[List[str]] = None,
+        step_callback: Optional[Callable] = None,
     ) -> Dict:
         """
-        Process a user message through all agents.
+        Process a user message through all agents with Tool Use.
 
         Args:
             conversation_id: Conversation ID
             user_message: User's input message
             agent_ids: List of agent IDs to consult (defaults to all)
+            step_callback: Optional callback(agent_id, agent_name, step_dict) for real-time step streaming
 
         Returns:
             Dict with conversation results and agent responses
@@ -211,7 +225,7 @@ class ConversationEngine:
 
         # Get agent responses concurrently with rate limiting
         agent_responses = await self._get_agent_responses(
-            user_message, agent_ids, past_context
+            user_message, agent_ids, past_context, step_callback
         )
 
         result = {
@@ -280,6 +294,7 @@ class ConversationEngine:
         message: str,
         agent_ids: List[str],
         past_context: Optional[str] = None,
+        step_callback: Optional[Callable] = None,
     ) -> Dict[str, str]:
         """
         Get responses from multiple agents concurrently with rate limiting.
@@ -288,6 +303,7 @@ class ConversationEngine:
             message: Message to send to agents
             agent_ids: List of agent IDs
             past_context: Optional past conversation context
+            step_callback: Optional callback for real-time step streaming
 
         Returns:
             Dict mapping agent IDs to their responses
@@ -301,7 +317,9 @@ class ConversationEngine:
                 continue
 
             logger.info(f"Creating task for agent {agent_id}")
-            task = self._get_agent_response_with_limit(agent_id, message, past_context)
+            task = self._get_agent_response_with_limit(
+                agent_id, message, past_context, step_callback
+            )
             tasks.append(task)
 
         logger.info(f"Starting asyncio.gather for {len(tasks)} tasks")
@@ -328,40 +346,118 @@ class ConversationEngine:
         agent_id: str,
         message: str,
         past_context: Optional[str] = None,
+        step_callback: Optional[Callable] = None,
     ) -> str:
         """
-        Get a single agent response with semaphore rate limiting.
+        Get a single agent response with semaphore rate limiting via AgentTaskExecutor.
+
+        All chat responses now go through the Tool Use pipeline:
+        AgentTaskExecutor → DeepSeek function calling → tools (web_search, execute_python)
 
         Args:
             agent_id: Agent ID
             message: Message to process
             past_context: Optional past conversation context
+            step_callback: Optional callback(agent_id, agent_name, step_dict) for real-time streaming
 
         Returns:
-            Agent's response string
+            Agent's final response string
         """
         async with self.semaphore:
             agent = self.agents[agent_id]
-            logger.info(f"Getting response from {agent.name}")
+            logger.info(
+                f"[Tool Use] Getting response from {agent.name} (role: {agent.role})"
+            )
 
             try:
-                # Build enhanced message with context if available
-                enhanced_message = message
-                if past_context:
-                    enhanced_message = f"""[과거 대화 참고]
+                # --- Tool Use Path (AgentTaskExecutor) ---
+                if self.deepseek_service is not None:
+                    from services.agent_executor import AgentTaskExecutor, TaskStep
+
+                    # Build enhanced message with context if available
+                    enhanced_message = message
+                    if past_context:
+                        enhanced_message = f"""[과거 대화 참고]
 {past_context}
 
 [현재 요청]
 {message}"""
 
-                response = await agent.respond(enhanced_message)
+                    # Get SOUL prompt for this agent
+                    soul_prompt = agent.get_soul_system_prompt()
 
-                # Add context reference indicator if past context was used
-                if past_context and len(response) > 50:
-                    response = f"{response}\n\n_📌 과거 대화를 참고했습니다_"
+                    # Create per-agent step callback wrapper
+                    def on_step(step: TaskStep):
+                        if step_callback:
+                            step_callback(
+                                agent_id,
+                                agent.name,
+                                {
+                                    "type": step.type,
+                                    "content": step.content,
+                                    "tool_name": step.tool_name,
+                                    "tool_args": step.tool_args,
+                                    "success": step.success,
+                                },
+                            )
 
-                logger.info(f"{agent.name} responded: {response[:100]}...")
-                return response
+                    executor = AgentTaskExecutor(
+                        deepseek_service=self.deepseek_service,
+                        on_step=on_step,
+                    )
+
+                    # Get conversation history from the agent
+                    conversation_history = agent.get_history(limit=10)
+
+                    result = await executor.execute_task(
+                        task=enhanced_message,
+                        agent_name=agent.name,
+                        agent_role=agent.role,
+                        soul_prompt=soul_prompt,
+                        conversation_history=conversation_history,
+                    )
+
+                    # Save to agent's conversation history
+                    agent.add_to_history("user", enhanced_message)
+                    agent.add_to_history("assistant", result.final_response)
+
+                    # Add context reference indicator if past context was used
+                    response = result.final_response
+                    if past_context and len(response) > 50:
+                        tool_count = sum(
+                            1 for s in result.steps if s.type == "tool_call"
+                        )
+                        if tool_count > 0:
+                            response = f"{response}\n\n_🔧 {tool_count}개의 도구를 활용했습니다_"
+                        response = f"{response}\n\n_📌 과거 대화를 참고했습니다_"
+
+                    logger.info(
+                        f"[Tool Use] {agent.name} responded ({len(result.steps)} steps): {response[:100]}..."
+                    )
+                    return response
+
+                # --- Fallback: simple respond() if no deepseek_service ---
+                else:
+                    logger.warning(
+                        f"No DeepSeekService — falling back to agent.respond() for {agent.name}"
+                    )
+
+                    enhanced_message = message
+                    if past_context:
+                        enhanced_message = f"""[과거 대화 참고]
+{past_context}
+
+[현재 요청]
+{message}"""
+
+                    response = await agent.respond(enhanced_message)
+
+                    if past_context and len(response) > 50:
+                        response = f"{response}\n\n_📌 과거 대화를 참고했습니다_"
+
+                    logger.info(f"{agent.name} responded: {response[:100]}...")
+                    return response
+
             except Exception as e:
                 logger.error(f"Error from {agent.name}: {e}")
                 import traceback

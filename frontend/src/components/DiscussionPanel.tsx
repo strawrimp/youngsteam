@@ -82,11 +82,19 @@ const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-slate-400">
-              <span className="material-symbols-outlined text-5xl mb-2">
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
+              <span className="material-symbols-outlined text-5xl">
                 chat_bubble
               </span>
-              <p className="text-sm">토론 메시지가 없습니다</p>
+              <div className="text-center">
+                <p className="text-sm font-medium mb-1">아직 토론 메시지가 없습니다</p>
+                <p className="text-xs leading-relaxed text-slate-400">
+                  메인 채팅에서 토론이 시작되면,<br/>
+                  에이전트 간의 사이드 토론이 여기에 표시됩니다.<br/>
+                  이 공간은 사용자에게 비공개이며,<br/>
+                  에이전트들이 자유롭게 의견을 나누는 곳입니다.
+                </p>
+              </div>
             </div>
           ) : (
             messages.map((message) => (

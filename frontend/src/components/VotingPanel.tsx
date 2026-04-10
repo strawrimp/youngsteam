@@ -19,8 +19,8 @@ interface VotingPanelProps {
 const VotingPanel: React.FC<VotingPanelProps> = ({
   consensusPercentage = 82,
   activeContext = {
-    title: '아키텍처 업데이트',
-    description: '고처리량 AI 추론을 위한 백엔드 스택 최적화.',
+    title: '현재 활성 프로젝트 없음',
+    description: '채팅에서 명령을 내리면 에이전트들이 컨텍스트를 생성합니다.',
   },
   stats = {
     cpu: 24,
@@ -85,11 +85,14 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
         : 'bg-white border-slate-100'
     }`}>
       <div className="p-6">
-        <h3 className={`font-headline font-bold text-lg mb-6 text-2xl ${
+        <h3 className={`font-headline font-bold text-lg mb-1 text-2xl ${
           isDark ? 'text-slate-100' : 'text-slate-900'
         }`}>
           운영 허브
         </h3>
+        <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          에이전트 투표, 토론, 시스템 통계를 한눈에 확인하세요
+        </p>
 
         {/* Tabs */}
         <div className={`flex rounded-lg p-1 mb-6 ${
@@ -209,7 +212,11 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
             ) : (
               <div className={`text-center py-6 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 <span className="material-symbols-outlined text-3xl block mb-2">how_to_vote</span>
-                <p className="text-xs">메시지를 보내면<br/>에이전트들의 투표가 시작됩니다</p>
+                <p className="text-xs font-medium mb-1">아직 투표가 없습니다</p>
+                <p className="text-[11px] leading-relaxed">
+                  채팅에 메시지를 보내면 에이전트들이<br/>
+                  각자의 관점에서 의견을 제시하고 투표합니다
+                </p>
               </div>
             )}
 
@@ -235,7 +242,7 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
               <textarea
                 value={debateTopic}
                 onChange={(e) => setDebateTopic(e.target.value)}
-                placeholder="다음 스프린트의 우선순위에 대해 토론..."
+                placeholder="예: 신규 기능의 기술 스택 선정에 대해 토론해 주세요..."
                 className={`w-full px-3 py-2 border rounded-lg text-xs resize-none focus:ring-2 focus:ring-primary focus:border-primary ${
                   isDark 
                     ? 'bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500'
@@ -392,7 +399,11 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
             {!debateResult && !isDebating && (
               <div className={`text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 <span className="material-symbols-outlined text-3xl block mb-2">forum</span>
-                <p className="text-xs">토론 주제를 입력하고<br/>시작 버튼을 눌러주세요</p>
+                <p className="text-xs font-medium mb-1">토론을 시작해 보세요</p>
+                <p className="text-[11px] leading-relaxed">
+                  주제를 입력하면 AI 팀원들이 다양한 관점에서<br/>
+                  심도 있는 토론을 진행합니다
+                </p>
               </div>
             )}
           </div>

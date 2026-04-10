@@ -106,6 +106,19 @@ const App: React.FC = () => {
  
             if (data.type === 'status') {
               setProcessingStatus(data.message || data.status);
+            } else if (data.type === 'agent_step') {
+              // Tool Use 실시간 단계 스트리밍 (채팅 중 도구 사용 표시)
+              console.log('[Tool Use] Step:', data.agent_name, data.step?.type, data.step?.tool_name || '');
+              // Store에 임시 상태로 표시 (나중에 agent_response로 덮어씀)
+              setProcessingStatus(
+                data.step?.type === 'tool_call'
+                  ? `🔧 ${data.agent_name}: ${data.step.tool_name} 실행 중...`
+                  : data.step?.type === 'thinking'
+                  ? `💭 ${data.agent_name}: 분석 중...`
+                  : data.step?.type === 'tool_result'
+                  ? `✅ ${data.agent_name}: ${data.step.tool_name} 완료`
+                  : `⏳ ${data.agent_name}: 처리 중...`
+              );
             } else if (data.type === 'agent_response') {
               // Add agent response to store
               addAgentResponse(data.agent_id, {
@@ -280,9 +293,9 @@ const App: React.FC = () => {
 
       {/* Main Content - Tab-based */}
       {activeTab === 'dashboard' ? (
-        <div className="flex-1 flex">
+        <div className="flex-1 flex min-h-0">
           {/* Center Area: Header + ChatWindow */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0">
             {/* Header */}
             <Header
               status="syncing"

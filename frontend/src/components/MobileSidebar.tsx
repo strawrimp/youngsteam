@@ -63,12 +63,12 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
               <h2 className={`font-headline font-bold leading-tight ${
                 isDark ? 'text-slate-100' : 'text-slate-900'
               }`}>
-                {teamSettings?.team_name || "Young's Team"}
+                {teamSettings?.team_name || "AI 경영진 팀"}
               </h2>
               <p className={`text-xs font-semibold tracking-wide ${
                 isDark ? 'text-slate-500' : 'text-slate-500'
               }`}>
-                {teamSettings?.team_subtitle || "AI Agents Online"}
+                {teamSettings?.team_subtitle || "다중 에이전트 협업 시스템"}
               </p>
             </div>
           </div>
