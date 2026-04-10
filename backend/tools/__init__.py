@@ -3,8 +3,16 @@
 from tools.base_tool import BaseTool, ToolResult
 from tools.web_search import WebSearchTool
 from tools.code_executor import CodeExecutorTool
+from tools.youtube_transcript import YouTubeTranscriptTool
 
-__all__ = ["BaseTool", "ToolResult", "WebSearchTool", "CodeExecutorTool", "get_all_tools"]
+__all__ = [
+    "BaseTool",
+    "ToolResult",
+    "WebSearchTool",
+    "CodeExecutorTool",
+    "YouTubeTranscriptTool",
+    "get_all_tools",
+]
 
 
 def get_all_tools() -> list["BaseTool"]:
@@ -12,4 +20,5 @@ def get_all_tools() -> list["BaseTool"]:
     return [
         WebSearchTool(),
         CodeExecutorTool(),
+        YouTubeTranscriptTool(),
     ]
