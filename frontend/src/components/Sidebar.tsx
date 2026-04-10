@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="mb-8 flex items-center gap-3">
         <div className={`
           w-10 h-10 rounded-xl flex items-center justify-center
-          ${isDark ? 'bg-blue-600 text-white' : 'bg-primary text-on-primary'}
+          ${isDark ? 'bg-slate-600 text-white' : 'bg-primary text-on-primary'}
         `}>
           <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>
             {teamSettings?.team_icon || 'terminal'}
@@ -65,9 +65,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             // Active state colors by role
             switch (agent.role.toLowerCase()) {
               case 'manager':
-                return isDark 
-                  ? 'bg-blue-900/40 text-blue-300' 
-                  : 'bg-blue-50 text-blue-700';
+                return isDark
+                  ? 'bg-slate-900/40 text-slate-300'
+                  : 'bg-slate-50 text-slate-700';
               case 'developer':
                 return isDark 
                   ? 'bg-emerald-900/40 text-emerald-300' 

@@ -75,7 +75,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, response, isTyping 
       <div className="flex items-center gap-sm mb-md">
         <span
           className={`inline-block w-2 h-2 rounded-full ${
-            isTyping ? 'bg-blue-500 animate-pulse' : hasResponse ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+            isTyping ? 'bg-slate-500 animate-pulse' : hasResponse ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
           }`}
         />
         <span className={`text-xs font-medium ${hasResponse ? 'text-emerald-600 dark:text-emerald-400' : 'dark:text-slate-400 text-slate-600'}`}>

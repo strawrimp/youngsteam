@@ -36,7 +36,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div className="flex gap-4 max-w-2xl ml-auto animate-fade-in-up">
         {/* Avatar */}
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${
-          isDark ? 'bg-blue-600 shadow-blue-500/30' : 'bg-primary shadow-primary/20'
+          isDark ? 'bg-slate-600 shadow-slate-500/30' : 'bg-primary shadow-primary/20'
         }`}>
           <span 
             className="material-symbols-outlined text-white" 
@@ -56,7 +56,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </span>
           </div>
           <div className={`p-5 rounded-2xl rounded-tr-2xl rounded-br-sm ${
-            isDark ? 'bg-blue-600' : 'bg-primary'
+            isDark ? 'bg-slate-600' : 'bg-primary'
           } text-white`}>
             <p className="text-base">
               {content}

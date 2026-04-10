@@ -67,12 +67,12 @@ const MentionDropdown: React.FC<MentionDropdownProps> = ({
           key={candidate.id}
           onClick={() => onSelect(candidate)}
           className={`w-full px-4 py-2 flex items-center gap-3 text-left transition-colors
-            ${index === selectedIndex 
-              ? isDark 
-                ? 'bg-blue-900/40 text-blue-300' 
-                : 'bg-primary/10 text-primary' 
-              : isDark 
-                ? 'hover:bg-slate-700' 
+            ${index === selectedIndex
+              ? isDark
+                ? 'bg-slate-700/40 text-slate-300'
+                : 'bg-primary/10 text-primary'
+              : isDark
+                ? 'hover:bg-slate-700'
                 : 'hover:bg-slate-50'}`}
         >
           <span className="text-xl">
@@ -467,10 +467,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </div>
             <button 
               onClick={handleSend}
-              className={`p-3 text-white rounded-xl hover:brightness-110 
+              className={`p-3 text-white rounded-xl hover:brightness-110
                          active:scale-95 transition-all flex items-center justify-center ${
-                           isDark ? 'bg-blue-600' : 'bg-primary'
-                         }`}
+                            isDark ? 'bg-slate-600' : 'bg-primary'
+                          }`}
             >
               <span className="material-symbols-outlined">send</span>
             </button>

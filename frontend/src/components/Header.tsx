@@ -25,9 +25,9 @@ const Header: React.FC<HeaderProps> = ({
       animate: true,
     },
     synced: {
-      bg: isDark ? 'bg-blue-900/30' : 'bg-blue-50',
-      text: isDark ? 'text-blue-400' : 'text-blue-700',
-      border: isDark ? 'border-blue-800' : 'border-blue-100',
+      bg: isDark ? 'bg-slate-900/30' : 'bg-slate-50',
+      text: isDark ? 'text-slate-400' : 'text-slate-700',
+      border: isDark ? 'border-slate-800' : 'border-slate-100',
       label: '동기화 완료',
       animate: false,
     },
@@ -90,8 +90,8 @@ const Header: React.FC<HeaderProps> = ({
             className={`
               font-headline font-bold tracking-tight transition-all
               ${activeTab === 'dashboard'
-                ? isDark 
-                  ? 'text-blue-400 border-b-2 border-blue-400 pb-1'
+                ? isDark
+                  ? 'text-slate-400 border-b-2 border-slate-400 pb-1'
                   : 'text-primary border-b-2 border-primary pb-1'
                 : isDark
                   ? 'text-slate-400 hover:text-slate-200'
@@ -106,8 +106,8 @@ const Header: React.FC<HeaderProps> = ({
             className={`
               font-headline font-bold tracking-tight transition-all
               ${activeTab === 'archive'
-                ? isDark 
-                  ? 'text-blue-400 border-b-2 border-blue-400 pb-1'
+                ? isDark
+                  ? 'text-slate-400 border-b-2 border-slate-400 pb-1'
                   : 'text-primary border-b-2 border-primary pb-1'
                 : isDark
                   ? 'text-slate-400 hover:text-slate-200'

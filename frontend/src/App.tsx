@@ -358,8 +358,8 @@ const App: React.FC = () => {
         <button className={`
           w-14 h-14 rounded-full shadow-xl
           flex items-center justify-center hover:scale-105 transition-all
-          ${isDark 
-            ? 'bg-blue-600 text-white' 
+          ${isDark
+            ? 'bg-slate-600 text-white'
             : 'bg-primary text-white'
           }
         `}>
