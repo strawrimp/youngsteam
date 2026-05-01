@@ -328,6 +328,7 @@ class AgentTaskExecutor:
 - **web_search**: 최신 정보, 뉴스, 사실 확인이 필요할 때 사용
 - **execute_python**: 계산, 데이터 분석, 알고리즘 구현이 필요할 때 사용
 - **youtube_transcript**: YouTube 영상의 자막을 추출하고 분석해야 할 때 사용. YouTube URL이 포함된 요청이나 영상 내용 분석 요청 시 활용하세요.
+- **delegate_to_openclaw**: 외부 시스템에 변경을 가하는 작업(이메일 발송, GitHub 조작, 파일 작성 등)이 필요할 때 사용. 단순 정보 조회는 web_search를 사용하세요.
 
 업무 완료 후 결과를 명확하고 구조적으로 정리하여 보고하세요.
 한국어로 응답하세요."""
