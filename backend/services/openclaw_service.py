@@ -50,5 +50,84 @@ class OpenClawService:
         Returns:
             Dict: {"success": bool, "output": str, "actions_taken": List[str], "error": str}
         """
-        # TODO: 실제 API 호출 구현 (Phase 2에서)
-        pass
+        headers = {}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        payload = {
+            "model": "openclaw-default",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"""You are an action agent. Execute the requested task using available tools.
+
+Task: {instruction}
+{f'Context: {context}' if context else ''}
+{f'Agent: {agent_name}' if agent_name else ''}
+
+Report what you did in this format:
+- actions_taken: list of actions performed
+- success: true/false
+- output: what happened""",
+                }
+            ],
+            "stream": False,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.base_url}/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                )
+
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "output": "",
+                    "actions_taken": [],
+                    "error": f"OpenClaw API error {response.status_code}: {response.text}",
+                }
+
+            data = response.json()
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+            return {
+                "success": True,
+                "output": content,
+                "actions_taken": self._parse_actions(content),
+                "error": "",
+            }
+
+        except httpx.TimeoutException:
+            return {
+                "success": False,
+                "output": "",
+                "actions_taken": [],
+                "error": "OpenClaw request timed out",
+            }
+        except Exception as e:
+            logger.error(f"OpenClaw execute_instruction error: {e}")
+            return {
+                "success": False,
+                "output": "",
+                "actions_taken": [],
+                "error": str(e),
+            }
+
+    def _parse_actions(self, content: str) -> list:
+        """응답에서 수행한 액션 목록 파싱."""
+        actions = []
+        for line in content.split("\n"):
+            if line.strip().startswith("-"):
+                actions.append(line.strip().lstrip("- ").strip())
+        return actions
+
+    def _parse_actions(self, content: str) -> list:
+        """응답에서 수행한 액션 목록 파싱."""
+        actions = []
+        for line in content.split("\n"):
+            if line.strip().startswith("-"):
+                actions.append(line.strip().lstrip("- ").strip())
+        return actions
