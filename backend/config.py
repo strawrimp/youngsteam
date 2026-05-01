@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = True
 
+    # OpenClaw Integration (Mac Mini)
+    openclaw_enabled: bool = False
+    openclaw_base_url: str = "http://localhost:4242"
+    openclaw_api_key: str = ""
+    openclaw_timeout: float = 180.0
+    openclaw_fallback_host: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = False
