@@ -92,6 +92,26 @@ async def lifespan(app: FastAPI):
         )
         logger.info(f"✅ Registered LLM Provider: DeepSeek (Primary)")
 
+        if settings.openclaw_enabled:
+            from services.openclaw_service import OpenClawService
+
+            openclaw_service = OpenClawService(
+                base_url=settings.openclaw_base_url,
+                api_key=settings.openclaw_api_key,
+                timeout=settings.openclaw_timeout,
+            )
+
+            try:
+                oc_healthy = await openclaw_service.health_check()
+                if oc_healthy:
+                    logger.info(f"✅ OpenClaw Gateway reachable at {settings.openclaw_base_url}")
+                else:
+                    logger.warning(f"⚠️ OpenClaw Gateway not reachable at {settings.openclaw_base_url}")
+            except Exception as e:
+                logger.warning(f"⚠️ OpenClaw health check failed: {e}")
+        else:
+            logger.info("   OpenClaw: DISABLED")
+
         # Register Gemini as fallback #1
         if settings.gemini_api_key:
             gemini_provider = GeminiProvider(
