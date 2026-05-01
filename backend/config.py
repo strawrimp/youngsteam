@@ -43,7 +43,6 @@ class Settings(BaseSettings):
 
     # Environment
     environment: str = "development"
-    debug: bool = True
 
     # OpenClaw Integration (Mac Mini)
     openclaw_enabled: bool = False
@@ -51,6 +50,8 @@ class Settings(BaseSettings):
     openclaw_api_key: str = ""
     openclaw_timeout: float = 180.0
     openclaw_fallback_host: str = ""
+
+    debug: bool = True
 
     class Config:
         env_file = ".env"
