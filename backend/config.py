@@ -51,6 +51,16 @@ class Settings(BaseSettings):
     openclaw_timeout: float = 180.0
     openclaw_fallback_host: str = ""
 
+    # OpenClaw WebSocket settings
+    openclaw_ws_endpoint: str = ""
+    openclaw_ws_probe_timeout: float = 5.0
+    openclaw_ws_cache_ttl: int = 300
+    openclaw_ws_enabled: bool = True
+    openclaw_device_state_path: str = "state/openclaw_device.json"
+    openclaw_requested_scopes: str = "operator.read,operator.write"
+    openclaw_client_id: str = "my-ai-company"
+    openclaw_client_version: str = "local-dev"
+
     debug: bool = True
 
     class Config:

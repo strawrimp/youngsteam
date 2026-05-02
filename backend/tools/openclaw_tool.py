@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict
 from tools.base_tool import BaseTool, ToolResult
+from services.openclaw_service import get_openclaw_service
 
 logger = logging.getLogger(__name__)
 
@@ -49,23 +50,22 @@ class OpenClawTool(BaseTool):
         Returns:
             ToolResult with success status and output
         """
-        from config import settings
-        from services.openclaw_service import OpenClawService
-
-        if not settings.openclaw_enabled:
+        service = get_openclaw_service()
+        if service is None:
             return ToolResult(
                 success=False,
                 output="",
-                error="OpenClaw integration is disabled (OPENCLAW_ENABLED=false)",
+                error="OpenClaw 서비스를 사용할 수 없습니다 (OPENCLAW_ENABLED=false)",
+            )
+
+        if not await service.is_available():
+            return ToolResult(
+                success=False,
+                output="",
+                error=f"OpenClaw Gateway({service.BASE_URL})에 연결할 수 없습니다",
             )
 
         try:
-            service = OpenClawService(
-                base_url=settings.openclaw_base_url,
-                api_key=settings.openclaw_api_key,
-                timeout=settings.openclaw_timeout,
-            )
-
             result = await service.execute_instruction(
                 instruction=instruction,
                 context={"expected_outcome": expected_outcome} if expected_outcome else None,
