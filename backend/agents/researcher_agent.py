@@ -10,7 +10,12 @@ logger = logging.getLogger(__name__)
 class ResearcherAgent(BaseAgent):
     """Research and data analysis specialist agent."""
 
-    def __init__(self, agent_id: str, name: str = "Researcher", deepseek_service: DeepSeekService = None):
+    def __init__(
+        self,
+        agent_id: str,
+        name: str = "Luna",
+        deepseek_service: DeepSeekService = None,
+    ):
         """Initialize Researcher agent.
 
         Args:
@@ -29,7 +34,9 @@ class ResearcherAgent(BaseAgent):
         self.deepseek = deepseek_service or DeepSeekService()
 
         # Load SOUL personality
-        self._soul_system_prompt = self.get_soul_system_prompt(debate_style="analytical")
+        self._soul_system_prompt = self.get_soul_system_prompt(
+            debate_style="analytical"
+        )
 
     async def think(self, context: str) -> str:
         """Process context and generate research insights.
@@ -107,7 +114,7 @@ class ResearcherAgent(BaseAgent):
         Returns:
             Dict with choice and reasoning
         """
-        candidates_str = "\n".join([f"{i+1}. {c}" for i, c in enumerate(candidates)])
+        candidates_str = "\n".join([f"{i + 1}. {c}" for i, c in enumerate(candidates)])
 
         prompt = f"""주제: {topic}
 
@@ -158,7 +165,9 @@ class ResearcherAgent(BaseAgent):
         # Build context from previous messages
         context = f"주제: {topic}\n라운드: {round_num}\n\n이전 의견들:\n"
         for msg in previous_messages[-10:]:  # Last 10 messages for context
-            context += f"- {msg.get('agent_name', 'Unknown')}: {msg.get('content', '')}\n"
+            context += (
+                f"- {msg.get('agent_name', 'Unknown')}: {msg.get('content', '')}\n"
+            )
 
         debate_mode_instruction = {
             "debate": "상대 의견에 대해 논리적으로 반박하거나 개선안을 제시하세요.",
@@ -169,7 +178,7 @@ class ResearcherAgent(BaseAgent):
         prompt = f"""{context}
 
 리서처 관점에서 위 의견들을 종합하여 다음과 같이 응답하세요:
-{debate_mode_instruction.get(mode, debate_mode_instruction['debate'])}
+{debate_mode_instruction.get(mode, debate_mode_instruction["debate"])}
 
 데이터, 시장 조사, 트렌드 분석을 고려하여 2-3문장으로 응답하세요."""
 

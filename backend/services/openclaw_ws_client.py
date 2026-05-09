@@ -12,8 +12,6 @@ Reference: OpenClaw Gateway Protocol Documentation
 """
 
 import asyncio
-import hashlib
-import hmac
 import json
 import logging
 import time
@@ -24,6 +22,17 @@ import websockets
 import websockets.exceptions
 
 from models.openclaw_protocol import (
+    CLIENT_ID,
+    CLIENT_MODE,
+    ROLE,
+    CAPS,
+    DEFAULT_SCOPES,
+    DEFAULT_PLATFORM,
+    DEFAULT_LOCALE,
+    DEFAULT_USER_AGENT,
+    DEFAULT_CLIENT_VERSION,
+    MIN_PROTOCOL,
+    MAX_PROTOCOL,
     FrameType,
     EventType,
     Method,
@@ -34,9 +43,9 @@ from models.openclaw_protocol import (
     ProtocolError,
     DeviceIdentity,
     PROTOCOL_VERSION,
+    build_sign_string,
 )
-from repositories.openclaw_device_store import OpenClawDeviceStore
-from config import settings
+from repositories.openclaw_device_store import OpenClawDeviceStore, b64url
 
 logger = logging.getLogger(__name__)
 
@@ -203,60 +212,76 @@ class GatewayWsClient:
         nonce: str,
         timestamp: int,
     ) -> ConnectRequest:
-        """Build connect request with device authentication.
+        """Build connect request with Ed25519 device authentication.
+
+        Protocol (matching JS buildConnectParams() + oe()):
+        1. Build sign string: v2|deviceId|clientId|clientMode|role|scopes|signedAtMs|token|nonce
+        2. Sign with Ed25519 private key
+        3. Include DeviceIdentity in connect params
 
         Args:
             nonce: Challenge nonce from server
-            timestamp: Challenge timestamp
+            timestamp: Challenge timestamp (unused, we use current time)
 
         Returns:
             ConnectRequest ready to send
         """
+        # Ensure Ed25519 device identity exists
         device_state = self.device_store.load_or_create_device_identity()
         auth_token = self.device_store.get_device_token() or self.gateway_token
 
-        private_key = self.device_store.get_private_key_material() or ""
-        signature_payload = "\n".join(
-            [
-                device_state.device_id,
-                nonce,
-                str(timestamp or 0),
-                "operator",
-                ",".join(self.requested_scopes),
-            ]
-        )
-        signature = hmac.new(
-            private_key.encode("utf-8"),
-            signature_payload.encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()
+        # Get Ed25519 signing key
+        signing_key = self.device_store.get_signing_key()
+        if signing_key is None:
+            raise RuntimeError(
+                "No Ed25519 signing key available — device identity not initialized"
+            )
 
+        # Build sign string matching JS oe():
+        #   v2|deviceId|clientId|clientMode|role|scope1,scope2|signedAtMs|token|nonce
+        signed_at_ms = int(time.time() * 1000)
+        sign_string = build_sign_string(
+            device_id=device_state.device_id,
+            client_id=CLIENT_ID,
+            client_mode=CLIENT_MODE,
+            role=ROLE,
+            scopes=self.requested_scopes,
+            signed_at_ms=signed_at_ms,
+            token=auth_token,
+            nonce=nonce,
+        )
+
+        # Ed25519 sign the sign string
+        signature_bytes = signing_key.sign(sign_string.encode("utf-8"))
+        signature_b64 = b64url(signature_bytes)
+
+        # Build connect params matching JS protocol
         auth = {"token": auth_token}
         device = DeviceIdentity(
             id=device_state.device_id,
             public_key=device_state.public_key,
-            signature=signature,
-            signed_at=int(time.time() * 1000),
+            signature=signature_b64,
+            signed_at=signed_at_ms,
             nonce=nonce,
         )
 
         params = ConnectParams(
-            min_protocol=PROTOCOL_VERSION,
-            max_protocol=PROTOCOL_VERSION,
+            min_protocol=MIN_PROTOCOL,
+            max_protocol=MAX_PROTOCOL,
             client={
-                "id": getattr(settings, "openclaw_client_id", "my-ai-company"),
-                "version": getattr(settings, "openclaw_client_version", "local-dev"),
-                "platform": "macos",
-                "mode": "operator",
+                "id": CLIENT_ID,
+                "version": DEFAULT_CLIENT_VERSION,
+                "platform": DEFAULT_PLATFORM,
+                "mode": CLIENT_MODE,
             },
-            role="operator",
+            role=ROLE,
             scopes=self.requested_scopes,
-            caps=[],
+            caps=list(CAPS),  # ["tool-events"]
             commands=[],
             permissions={},
             auth=auth,
-            locale="ko-KR",
-            user_agent="my-ai-company/openclaw-integration",
+            locale=DEFAULT_LOCALE,
+            user_agent=DEFAULT_USER_AGENT,
             device=device,
         )
 

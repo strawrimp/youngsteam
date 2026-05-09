@@ -16,7 +16,9 @@ class GLMService:
 
     BASE_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
-    def __init__(self, api_key: str = "", model: str = "glm-4", temperature: float = 0.7):
+    def __init__(
+        self, api_key: str = "", model: str = "glm-4", temperature: float = 0.7
+    ):
         """Initialize GLM service.
 
         Args:
@@ -43,9 +45,7 @@ class GLMService:
             ValueError: If API key format is invalid
         """
         if not self.api_key or "." not in self.api_key:
-            raise ValueError(
-                "Invalid API key format. Expected: KEY_ID.KEY_SECRET"
-            )
+            raise ValueError("Invalid API key format. Expected: KEY_ID.KEY_SECRET")
 
         # Split API key into ID and secret
         key_id, key_secret = self.api_key.split(".", 1)
@@ -158,7 +158,7 @@ class GLMService:
             if hasattr(e, "response"):
                 try:
                     logger.error(f"Response body: {e.response.text}")
-                except:
+                except Exception:
                     pass
             return f"[Error] GLM API error: {str(e)}"
         except Exception as e:

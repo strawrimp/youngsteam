@@ -137,7 +137,7 @@ export default function TaskPanel({ onClose, onExecuteTask }: TaskPanelProps) {
     manager: '👔',
     developer: '💻',
     designer: '🎨',
-    researcher: '🔬',
+    researcher: '📚',
   };
 
   const isRunning = activeExecution?.status === 'running';

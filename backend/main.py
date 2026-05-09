@@ -1,22 +1,57 @@
 """Main FastAPI application for AI Virtual Company backend."""
 
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Optional
 import json
 import logging
+import re
 import asyncio
+from pathlib import Path
+
+# 클로(OpenClaw) 멘션 패턴: 한국어 조사 지원
+# 매칭: @openclaw, @클로, 클로야, 클로를, 클로가, 클로한테 등
+# 비매칭: 클로버, 클로딘 (다른 단어의 일부일 때)
+# 참고: 한국어 조사 목록 — 주격(이/가), 목적격(을/를), 보격(이/가),
+#          관형격(의), 부사격(에/에서/로/으로/와/과/랑),
+#          호격(야/아), 접속(와/과/랑/이랑), 보조사(는/은/도/만/부터/까지/조차/밖에)
+#          비교(보다), 서술격(이다/이가), 처럼, 한테/에게/한테서/에게서
+CLAW_MENTION_PATTERN = re.compile(
+    r"(?:"
+    r"@openclaw\b"  # @openclaw (영문)
+    r"|@클로(?![가-힣])"  # @클로 (한글 이어지지 않을 때)
+    r"|(?:^|[\s,.!?\"'「『【])"  # 단어 경계 (시작/공백/구두점/인용)
+    r"클로"  # 이름
+    r"(?:"
+    r"야|아|이|가|는|은|을|를|의|에|서|와|과|도|만|"
+    r"로|으로|랑|이랑|"
+    r"한테|한테서|에게|에게서|"
+    r"부터|까지|조차|마저|밖에|보다|처럼|"
+    r"이고|이가|"
+    r"이야|이지|이라는"
+    r")*?"
+    r"(?=[\s,.!?\"'~」」】\)]|$)"
+    r")",
+    re.IGNORECASE,
+)
 
 from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from database import get_db, init_db, SessionLocal
+from database import get_db, init_db, SessionLocal, engine
 from models import Agent, Conversation, Message, TeamSettings
 from engines.conversation_engine import ConversationEngine
 from engines.voting_engine import VotingEngine
 from engines.debate_engine import DebateEngine
+from engines.live_discussion_engine import LiveDiscussionEngine
 from agents.agent_message_broker import AgentMessageBroker
 from services.memory_service import MemoryService
+from services.archive_service import ArchiveService
+from services.conversation_service import ConversationService
+from seed import ensure_agents_seeded, ensure_team_settings
 from services.deepseek_service import DeepSeekService
 from services.glm_service import GLMService
 from services.llm_provider_service import (
@@ -30,6 +65,7 @@ from agents.manager_agent import ManagerAgent
 from agents.developer_agent import DeveloperAgent
 from agents.designer_agent import DesignerAgent
 from agents.researcher_agent import ResearcherAgent
+from agents.openclaw_agent import OpenClawAgent
 from config import settings
 from websocket.manager import ConnectionManager
 from websocket.events import EventType, create_event
@@ -45,14 +81,28 @@ async def lifespan(app: FastAPI):
     """Lifespan context manager for app startup/shutdown."""
     # Startup
     logger.info("Starting up AI Virtual Company backend")
+
+    # ★ DB 경로 로깅 (실행 위치에 따른 분기 감지용)
+    db_url = str(settings.database_url)
+    db_path = db_url.replace("sqlite:///", "")
+    logger.info(f"[DB] DATABASE_URL: {db_url}")
+    logger.info(f"[DB] SQLite file:   {db_path}")
+    logger.info(f"[DB] File exists:   {Path(db_path).exists()}")
+
     try:
         init_db()
         logger.info("Database initialized")
+
+        # ★ Auto-seed default agents if table is empty (P1 fix: /api/agents 빈 배열 방지)
+        ensure_agents_seeded()
+        ensure_team_settings()
+        logger.info("Auto-seed check complete")
 
         # Initialize engines and services
         app.state.conversation_engine = ConversationEngine()
         app.state.voting_engine = VotingEngine()
         app.state.debate_engine = DebateEngine()
+        app.state.live_discussion_engine = LiveDiscussionEngine()
         app.state.message_broker = AgentMessageBroker()
         app.state.memory_service = MemoryService()
 
@@ -67,7 +117,7 @@ async def lifespan(app: FastAPI):
             f"✅ DeepSeek Service initialized (Hybrid: {settings.deepseek_enable_hybrid})"
         )
         logger.info(
-            f"   API Key: {settings.deepseek_api_key[:10]}..."
+            "   API Key: *** (configured)"
             if settings.deepseek_api_key
             else "   API Key: NOT SET"
         )
@@ -75,6 +125,15 @@ async def lifespan(app: FastAPI):
         # Inject DeepSeekService into ConversationEngine for Tool Use
         app.state.conversation_engine.set_deepseek_service(app.state.deepseek_service)
         logger.info("✅ DeepSeekService injected into ConversationEngine")
+
+        # Inject LiveDiscussionEngine into ConversationEngine
+        app.state.live_discussion_engine.set_deepseek_service(
+            app.state.deepseek_service
+        )
+        app.state.conversation_engine.set_live_discussion_engine(
+            app.state.live_discussion_engine
+        )
+        logger.info("✅ LiveDiscussionEngine initialized and linked")
 
         # Keep GLM service for backward compatibility
         app.state.glm_service = GLMService()
@@ -91,6 +150,8 @@ async def lifespan(app: FastAPI):
             "deepseek", deepseek_provider, is_primary=True
         )
         logger.info(f"✅ Registered LLM Provider: DeepSeek (Primary)")
+
+        openclaw_service = None
 
         if settings.openclaw_enabled:
             from services.openclaw_service import OpenClawService
@@ -111,6 +172,9 @@ async def lifespan(app: FastAPI):
                 logger.warning(f"⚠️ OpenClaw health check failed: {e}")
         else:
             logger.info("   OpenClaw: DISABLED")
+
+        # ★ Store in app.state for @openclaw mention handler
+        app.state.openclaw_service = openclaw_service
 
         # Register Gemini as fallback #1
         if settings.gemini_api_key:
@@ -146,7 +210,10 @@ async def lifespan(app: FastAPI):
 
         # Get agents from database
         db = SessionLocal()
-        agents = db.query(Agent).all()
+        try:
+            agents = db.query(Agent).all()
+        finally:
+            db.close()
 
         # Agent factory mapping
         agent_factories = {
@@ -161,6 +228,11 @@ async def lifespan(app: FastAPI):
             ),
             "researcher": lambda agent_id, name, service: ResearcherAgent(
                 agent_id, name, service
+            ),
+            "bot": lambda agent_id, name, _service: OpenClawAgent(
+                agent_id, name, openclaw_service=lambda: getattr(
+                    app.state, "openclaw_service", None
+                ),
             ),
         }
 
@@ -178,14 +250,39 @@ async def lifespan(app: FastAPI):
                     str(agent.id), agent_instance
                 )
                 app.state.debate_engine.register_agent(str(agent.id), agent_instance)
+                app.state.live_discussion_engine.register_agent(
+                    str(agent.id), agent_instance
+                )
                 logger.info(f"Registered agent: {agent.name} ({agent.role})")
             except Exception as e:
                 logger.error(f"Failed to register agent {agent.name}: {e}")
-
-        db.close()
         logger.info(
             f"Conversation engine initialized with {len(app.state.conversation_engine.agents)} agents"
         )
+
+        # ★ ConversationService를 ConversationEngine에 주입 (과거 대화 검색용)
+        conv_service_db = SessionLocal()
+        conversation_service = ConversationService(conv_service_db)
+        app.state.conversation_engine.set_conversation_service(conversation_service)
+        logger.info("✅ ConversationService wired to ConversationEngine")
+
+        # ArchiveService 초기화 — Manager 에이전트로 자동 분류
+        app.state.archive_service = ArchiveService(
+            deepseek_service=app.state.deepseek_service
+        )
+        # manager 역할 에이전트를 아카이브 분류기로 주입
+        for aid, agent in app.state.conversation_engine.agents.items():
+            if hasattr(agent, "role") and agent.role == "manager":
+                app.state.archive_service.set_manager_agent(agent)
+                logger.info("✅ ArchiveService initialized with Manager agent")
+                break
+        if not app.state.archive_service.manager_agent:
+            logger.warning(
+                "⚠️ ArchiveService: No manager agent found, classification disabled"
+            )
+
+        # LiveDiscussionEngine에도 archive_service 주입 (토론 종료 후 아카이빙)
+        app.state.live_discussion_engine.set_archive_service(app.state.archive_service)
 
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
@@ -205,10 +302,21 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Localhost during development
+    allow_origins=[
+        "http://localhost:7518",
+        "http://localhost:7520",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:7518",
+        "http://127.0.0.1:7520",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
@@ -268,12 +376,47 @@ async def websocket_endpoint(websocket: WebSocket):
                     # 채팅 + Tool Use 통합 로직
                     user_message = message.get("content", "").strip()
                     conversation_id = message.get("conversation_id")
+                    force_discussion = message.get("force_discussion", False)
+                    target_agent_role = message.get(
+                        "target_agent_role"
+                    )  # 답장: 특정 에이전트만 응답
+                    image_data = message.get("image_data")  # ★ base64 이미지 데이터
 
                     if not conversation_id:
                         await app.state.ws_manager.send_personal_message(
                             {"error": "Conversation ID required"}, websocket
                         )
                         continue
+
+                    # ★ @openclaw / @클로 멘션 → 클로 에이전트로 라우팅 (Agent 등록됨)
+                    if CLAW_MENTION_PATTERN.search(user_message):
+                        logger.info(
+                            f"[ClawRoute] CLAW_MENTION detected, routing to openclaw-bot. "
+                            f"conversation_id={conversation_id}"
+                        )
+                        target_agent_role = "bot"
+                        user_message = CLAW_MENTION_PATTERN.sub(" ", user_message).strip()
+                        user_message = re.sub(r"\s+", " ", user_message)
+                        force_discussion = False
+
+                    # 답장 타겟: role → agent_id 변환
+                    target_agent_ids = None
+                    if target_agent_role:
+                        engine = app.state.conversation_engine
+                        for aid, agent in engine.agents.items():
+                            if (
+                                hasattr(agent, "role")
+                                and agent.role == target_agent_role
+                            ):
+                                target_agent_ids = [aid]
+                                logger.info(
+                                    f"[Reply] Targeting agent: {agent.name} ({aid})"
+                                )
+                                break
+                        if not target_agent_ids:
+                            logger.warning(
+                                f"[Reply] No agent found for role: {target_agent_role}"
+                            )
 
                     # 실시간 Tool Use step 스트리밍 콜백
                     async def on_agent_step(agent_id: str, agent_name: str, step: dict):
@@ -291,17 +434,129 @@ async def websocket_endpoint(websocket: WebSocket):
                             pass  # Client disconnected
 
                     engine = app.state.conversation_engine
+
+                    # ★ 미리 참여 에이전트 결정 → agents_thinking 이벤트 전송
+                    if target_agent_ids:
+                        resolved_agent_ids = target_agent_ids
+                    else:
+                        resolved_agent_ids = engine._determine_agents(user_message)
+
+                    # 에이전트 "작업 시작" 이벤트 전송
+                    thinking_agents = []
+                    for aid in resolved_agent_ids:
+                        agent = engine.agents.get(aid)
+                        if agent:
+                            thinking_agents.append(
+                                {
+                                    "id": aid,
+                                    "name": agent.name,
+                                    "role": getattr(agent, "role", aid),
+                                }
+                            )
+                    if thinking_agents:
+                        await websocket.send_json(
+                            {
+                                "type": "agents_thinking",
+                                "agents": thinking_agents,
+                            }
+                        )
+                        logger.info(
+                            f"[WorkingBar] Sent agents_thinking: {[a['name'] for a in thinking_agents]}"
+                        )
+
+                    # Set WS callback for LiveDiscussionEngine
+                    async def ws_send_callback(data: dict):
+                        try:
+                            logger.debug(
+                                f"[WS Callback] Sending: {data.get('type', 'unknown')}"
+                            )
+                            await websocket.send_json(data)
+                        except Exception as e:
+                            logger.error(
+                                f"[WS Callback] Send failed: {type(e).__name__}: {e}"
+                            )
+
+                    app.state.live_discussion_engine.set_ws_send_callback(
+                        ws_send_callback
+                    )
+
                     try:
                         logger.info(
                             "About to call engine.process_message with Tool Use"
                         )
+
+                        # ★ DB에 대화 & 사용자 메시지 저장
+                        try:
+                            conv_db = SessionLocal()
+                            try:
+                                # 대화 레코드가 없으면 생성
+                                existing_conv = (
+                                    conv_db.query(Conversation)
+                                    .filter(Conversation.id == conversation_id)
+                                    .first()
+                                )
+                                if not existing_conv:
+                                    # 빠른 제목: 사용자 메시지 앞 20자
+                                    quick_title = user_message[:20] + (
+                                        "..." if len(user_message) > 20 else ""
+                                    )
+                                    conv = Conversation(
+                                        id=conversation_id,
+                                        title=quick_title,
+                                    )
+                                    conv_db.add(conv)
+                                    conv_db.commit()
+                                    logger.info(
+                                        f"[DB] Created conversation: {conversation_id} (title: {quick_title})"
+                                    )
+
+                                # 사용자 메시지 저장
+                                msg_type = "image" if image_data else "text"
+                                # 이미지가 있으면 content에 base64 데이터 포함
+                                saved_content = user_message
+                                if image_data:
+                                    # base64 데이터를 content에 저장 (프론트엔드에서 직접 렌더링)
+                                    saved_content = f"{user_message}\n[IMAGE_DATA]{image_data}" if user_message else f"[IMAGE_DATA]{image_data}"
+                                user_msg = Message(
+                                    conversation_id=conversation_id,
+                                    sender_type="user",
+                                    content=saved_content,
+                                    message_type=msg_type,
+                                )
+                                conv_db.add(user_msg)
+                                conv_db.commit()
+                            finally:
+                                conv_db.close()
+                        except Exception as db_err:
+                            logger.warning(
+                                f"[DB] Failed to save user message: {db_err}"
+                            )
+
                         result = await engine.process_message(
                             conversation_id,
                             user_message,
+                            agent_ids=resolved_agent_ids,  # 미리 결정한 에이전트 목록
                             step_callback=lambda aid, aname, step: (
                                 asyncio.ensure_future(on_agent_step(aid, aname, step))
                             ),
+                            force_discussion=force_discussion,
+                            image_context=f"[사용자가 이미지를 첨부했습니다. 이미지 내용을 바탕으로 답변해주세요.]" if image_data else None,
                         )
+
+                        # Check if discussion mode was triggered
+                        if result.get("discussion_mode"):
+                            # Discussion events are sent via ws_send_callback
+                            # Just send the initial confirmation
+                            await websocket.send_json(
+                                {
+                                    "type": "discussion_mode",
+                                    "discussion_id": result["discussion_id"],
+                                    "topic": result["topic"],
+                                }
+                            )
+                            continue
+
+                        # Normal response flow
                         logger.info(
                             f"Engine returned with {len(result.get('agent_responses', {}))} responses"
                         )
@@ -322,9 +577,89 @@ async def websocket_endpoint(websocket: WebSocket):
                                     "type": "agent_response",
                                     "agent_id": agent_id,
                                     "agent_name": agent_name,
+                                    "agent_role": getattr(agent, "role", agent_id)
+                                    if agent
+                                    else agent_id,
                                     "content": response,
                                     "timestamp": result["timestamp"],
                                 }
+                            )
+
+                            # ★ DB에 에이전트 응답 저장
+                            try:
+                                conv_db = SessionLocal()
+                                try:
+                                    agent_msg = Message(
+                                        conversation_id=conversation_id,
+                                        agent_id=agent_id,
+                                        sender_type="agent",
+                                        content=response,
+                                    )
+                                    conv_db.add(agent_msg)
+                                    conv_db.commit()
+                                finally:
+                                    conv_db.close()
+                            except Exception as db_err:
+                                logger.warning(
+                                    f"[DB] Failed to save agent response: {db_err}"
+                                )
+
+                            # ★ 에이전트 "작업 완료" 이벤트 전송
+                            await websocket.send_json(
+                                {
+                                    "type": "agent_done",
+                                    "agent_id": agent_id,
+                                    "agent_name": agent_name,
+                                }
+                            )
+
+                        # ★ 비동기 백그라운드 아카이빙 (LLM 분류)
+                        try:
+                            # 메시지가 3개 이상이면 LLM으로 자동 분류
+                            _conv_db_check = SessionLocal()
+                            try:
+                                _msg_count = (
+                                    _conv_db_check.query(Message)
+                                    .filter(Message.conversation_id == conversation_id)
+                                    .count()
+                                )
+                            finally:
+                                _conv_db_check.close()
+
+                            if _msg_count >= 3 and hasattr(
+                                app.state, "archive_service"
+                            ):
+
+                                async def _do_archive():
+                                    try:
+                                        result = await app.state.archive_service.archive_conversation(
+                                            conversation_id
+                                        )
+                                        if result:
+                                            logger.info(
+                                                f"[Archive] Auto-archived: {result.get('title', 'N/A')}"
+                                            )
+                                            # 프론트엔드에 아카이브 갱신 알림
+                                            await websocket.send_json(
+                                                {
+                                                    "type": "archive_updated",
+                                                    "conversation_id": conversation_id,
+                                                    "title": result.get("title", ""),
+                                                    "category": result.get(
+                                                        "category", ""
+                                                    ),
+                                                    "tags": result.get("tags", []),
+                                                }
+                                            )
+                                    except Exception as arch_err:
+                                        logger.warning(
+                                            f"[Archive] Background archive failed: {arch_err}"
+                                        )
+
+                                asyncio.create_task(_do_archive())
+                        except Exception as count_err:
+                            logger.warning(
+                                f"[Archive] Message count check failed: {count_err}"
                             )
 
                         # Save to memory
@@ -352,6 +687,72 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "error": str(e),
                             }
                         )
+
+                elif action == "new_conversation":
+                    # 새 대화 시작 — 기존 대화 종료 + 아카이빙
+                    old_conversation_id = message.get("conversation_id")
+                    logger.info(
+                        f"[NewConversation] Request received. Old conv: {old_conversation_id}"
+                    )
+
+                    if old_conversation_id:
+                        # 1) 기존 대화 종료
+                        try:
+                            conv_db = SessionLocal()
+                            try:
+                                conv = (
+                                    conv_db.query(Conversation)
+                                    .filter(Conversation.id == old_conversation_id)
+                                    .first()
+                                )
+                                if conv and conv.ended_at is None:
+                                    conv.ended_at = datetime.utcnow()
+                                    conv_db.commit()
+                                    logger.info(
+                                        f"[NewConversation] Ended conv: {old_conversation_id}"
+                                    )
+                            finally:
+                                conv_db.close()
+                        except Exception as db_err:
+                            logger.warning(
+                                f"[NewConversation] DB error ending conv: {db_err}"
+                            )
+
+                        # 2) 비동기 아카이빙 (LLM 분류)
+                        if hasattr(app.state, "archive_service"):
+
+                            async def _archive_old():
+                                try:
+                                    result = await app.state.archive_service.archive_conversation(
+                                        old_conversation_id
+                                    )
+                                    if result:
+                                        logger.info(
+                                            f"[NewConversation] Archived: {result.get('title', 'N/A')}"
+                                        )
+                                        await websocket.send_json(
+                                            {
+                                                "type": "archive_updated",
+                                                "conversation_id": old_conversation_id,
+                                                "title": result.get("title", ""),
+                                                "category": result.get("category", ""),
+                                                "tags": result.get("tags", []),
+                                            }
+                                        )
+                                except Exception as arch_err:
+                                    logger.warning(
+                                        f"[NewConversation] Archive failed: {arch_err}"
+                                    )
+
+                            asyncio.create_task(_archive_old())
+
+                    # 3) 프론트엔드에 새 대화 준비 완료 알림
+                    await websocket.send_json(
+                        {
+                            "type": "conversation_closed",
+                            "old_conversation_id": old_conversation_id,
+                        }
+                    )
 
                 elif action == "execute_task":
                     # 에이전트 업무 실행 (Tool Use)
@@ -425,6 +826,87 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "type": "task_error",
                                 "agent_id": agent_id,
                                 "error": str(e),
+                            }
+                        )
+
+                elif action == "start_debate":
+                    # 체인형 토론 시작 (버튼 클릭)
+                    topic = message.get("topic", "").strip()
+                    conversation_id = message.get("conversation_id")
+
+                    if not conversation_id:
+                        await websocket.send_json({"error": "Conversation ID required"})
+                        continue
+
+                    if not topic:
+                        # 주제가 없으면 최근 사용자 메시지를 주제로 사용
+                        topic = "이 주제에 대해 토론해봅시다"
+
+                    # Set WS callback for LiveDiscussionEngine
+                    async def debate_ws_callback(data: dict):
+                        try:
+                            logger.debug(
+                                f"[WS Callback] Sending: {data.get('type', 'unknown')}"
+                            )
+                            await websocket.send_json(data)
+                        except Exception as e:
+                            logger.error(
+                                f"[WS Callback] Send failed: {type(e).__name__}: {e}"
+                            )
+
+                    app.state.live_discussion_engine.set_ws_send_callback(
+                        debate_ws_callback
+                    )
+
+                    discussion_info = (
+                        await app.state.live_discussion_engine.start_discussion(
+                            topic=topic,
+                            conversation_id=conversation_id,
+                            num_rounds=2,
+                            force_discussion=True,
+                        )
+                    )
+
+                    await websocket.send_json(
+                        {
+                            "type": "discussion_mode",
+                            "discussion_id": discussion_info.discussion_id,
+                            "topic": topic,
+                        }
+                    )
+
+                    logger.info(
+                        f"[Debate] Started: {topic} (id: {discussion_info.discussion_id})"
+                    )
+
+                elif action == "stop_debate":
+                    # 토론 즉시 중단 (ESC 더블 탭)
+                    conversation_id = message.get("conversation_id")
+
+                    if not conversation_id:
+                        await websocket.send_json({"error": "Conversation ID required"})
+                        continue
+
+                    stopped = await app.state.live_discussion_engine.stop_discussion(
+                        conversation_id
+                    )
+
+                    if stopped:
+                        await websocket.send_json(
+                            {
+                                "type": "discussion_stopped",
+                                "conversation_id": conversation_id,
+                            }
+                        )
+                        logger.info(
+                            f"[Debate] Stopped discussion for conv: {conversation_id}"
+                        )
+                    else:
+                        await websocket.send_json(
+                            {
+                                "type": "discussion_stopped",
+                                "conversation_id": conversation_id,
+                                "note": "No active discussion to stop",
                             }
                         )
 
@@ -517,7 +999,7 @@ async def send_message(request_data: dict = None, db: Session = Depends(get_db))
 # REST API endpoints for agents
 @app.get("/api/agents")
 async def list_agents(db: Session = Depends(get_db)):
-    """List all agents."""
+    """List all agents (openclaw-bot included via DB init_agents.py)."""
     agents = db.query(Agent).all()
     return {
         "agents": [
@@ -707,6 +1189,10 @@ async def list_archived_conversations(
                 "message_count": db.query(Message)
                 .filter(Message.conversation_id == c.id)
                 .count(),
+                "tags": json.loads(c.tags) if c.tags else [],
+                "category": c.category or None,
+                "summary": c.summary or None,
+                "reference_code": c.reference_code or None,
             }
             for c in conversations
         ],
@@ -760,6 +1246,10 @@ async def get_conversation_detail(conversation_id: str, db: Session = Depends(ge
             "ended_at": conversation.ended_at.isoformat()
             if conversation.ended_at
             else None,
+            "tags": json.loads(conversation.tags) if conversation.tags else [],
+            "category": conversation.category or None,
+            "summary": conversation.summary or None,
+            "reference_code": conversation.reference_code or None,
             "messages": messages_data,
         },
     }
@@ -795,6 +1285,10 @@ async def search_conversations(q: str, limit: int = 20, db: Session = Depends(ge
                     "message_count": db.query(Message)
                     .filter(Message.conversation_id == conv.id)
                     .count(),
+                    "tags": json.loads(conv.tags) if conv.tags else [],
+                    "category": conv.category or None,
+                    "summary": conv.summary or None,
+                    "reference_code": conv.reference_code or None,
                 }
             )
 
@@ -815,6 +1309,11 @@ async def delete_conversation(conversation_id: str, db: Session = Depends(get_db
 
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # 메시지 먼저 삭제 (FK 제약조건)
+    db.query(Message).filter(Message.conversation_id == conversation_id).delete()
+    db.delete(conversation)
+    db.commit()
 
     return {"status": "ok", "message": f"Conversation {conversation_id} deleted"}
 
@@ -858,6 +1357,34 @@ async def update_team_settings(data: dict, db: Session = Depends(get_db)):
         "team_icon": settings.team_icon,
     }
 
+
+# ==================== Frontend Static File Serving ====================
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "build"
+if FRONTEND_DIR.exists():
+    logger.info(f"🌐 Serving frontend from: {FRONTEND_DIR}")
+
+    # Mount compiled JS/CSS assets
+    assets_dir = FRONTEND_DIR / "assets"
+    if assets_dir.exists():
+        app.mount(
+            "/assets",
+            StaticFiles(directory=str(assets_dir)),
+            name="frontend_assets",
+        )
+
+    # SPA catch-all: 모든 non-API 요청을 index.html로 fallback
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # API/WS 경로는 건드리지 않음 (404를 던져서 기존 핸들러가 처리하게 함)
+        if full_path.startswith(("api/", "ws", "openapi.json", "docs", "redoc")):
+            raise HTTPException(status_code=404)
+        return FileResponse(str(FRONTEND_DIR / "index.html"))
+else:
+    logger.warning(
+        f"⚠️ Frontend build not found at {FRONTEND_DIR}. "
+        f"Run 'cd frontend && npm run build' to build the UI."
+    )
 
 if __name__ == "__main__":
     import uvicorn

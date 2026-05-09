@@ -14,15 +14,34 @@ logger = logging.getLogger(__name__)
 
 # Forbidden modules and keywords for basic safety
 FORBIDDEN_MODULES = {
-    "os", "subprocess", "sys", "shutil", "pathlib",
-    "socket", "urllib", "requests", "httpx", "aiohttp",
-    "__import__", "importlib", "ctypes", "multiprocessing",
+    "os",
+    "subprocess",
+    "sys",
+    "shutil",
+    "pathlib",
+    "socket",
+    "urllib",
+    "requests",
+    "httpx",
+    "aiohttp",
+    "__import__",
+    "importlib",
+    "ctypes",
+    "multiprocessing",
 }
 
 FORBIDDEN_KEYWORDS = {
-    "__import__", "exec(", "eval(", "compile(",
-    "open(", "file(", "input(", "raw_input(",
-    "globals()", "locals()", "vars(",
+    "__import__",
+    "exec(",
+    "eval(",
+    "compile(",
+    "open(",
+    "file(",
+    "input(",
+    "raw_input(",
+    "globals()",
+    "locals()",
+    "vars(",
 }
 
 
@@ -36,7 +55,8 @@ def _is_safe_code(code: str) -> tuple[bool, str]:
 
     # Check for dangerous imports
     import re
-    imports = re.findall(r'import\s+(\w+)', code)
+
+    imports = re.findall(r"import\s+(\w+)", code)
     for mod in imports:
         if mod in FORBIDDEN_MODULES:
             return False, f"금지된 모듈: {mod}"
@@ -55,50 +75,66 @@ async def _run_code_with_timeout(code: str, timeout: float = 10.0) -> tuple[str,
 
         try:
             with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-                exec(code, {
-                    # Allow safe built-ins only
-                    "__builtins__": {
-                        "print": print,
-                        "len": len,
-                        "range": range,
-                        "enumerate": enumerate,
-                        "zip": zip,
-                        "map": map,
-                        "filter": filter,
-                        "sorted": sorted,
-                        "reversed": reversed,
-                        "sum": sum,
-                        "min": min,
-                        "max": max,
-                        "abs": abs,
-                        "round": round,
-                        "int": int,
-                        "float": float,
-                        "str": str,
-                        "bool": bool,
-                        "list": list,
-                        "dict": dict,
-                        "set": set,
-                        "tuple": tuple,
-                        "type": type,
-                        "isinstance": isinstance,
-                        "hasattr": hasattr,
-                        "getattr": getattr,
-                        "repr": repr,
-                        "format": format,
-                        "__name__": "__main__",
+                exec(
+                    code,
+                    {
+                        # Allow safe built-ins only
+                        "__builtins__": {
+                            "print": print,
+                            "len": len,
+                            "range": range,
+                            "enumerate": enumerate,
+                            "zip": zip,
+                            "map": map,
+                            "filter": filter,
+                            "sorted": sorted,
+                            "reversed": reversed,
+                            "sum": sum,
+                            "min": min,
+                            "max": max,
+                            "abs": abs,
+                            "round": round,
+                            "int": int,
+                            "float": float,
+                            "str": str,
+                            "bool": bool,
+                            "list": list,
+                            "dict": dict,
+                            "set": set,
+                            "tuple": tuple,
+                            "type": type,
+                            "isinstance": isinstance,
+                            "repr": repr,
+                            "format": format,
+                            # Exception types for try/except
+                            "Exception": Exception,
+                            "ValueError": ValueError,
+                            "TypeError": TypeError,
+                            "KeyError": KeyError,
+                            "IndexError": IndexError,
+                            "AttributeError": AttributeError,
+                            "RuntimeError": RuntimeError,
+                            "NotImplementedError": NotImplementedError,
+                            "ZeroDivisionError": ZeroDivisionError,
+                            "StopIteration": StopIteration,
+                            "__name__": "__main__",
+                        },
+                        # Allow math and json
+                        "math": __import__("math"),
+                        "json": __import__("json"),
+                        "re": __import__("re"),
+                        "datetime": __import__("datetime"),
+                        "random": __import__("random"),
+                        "collections": __import__("collections"),
+                        "itertools": __import__("itertools"),
                     },
-                    # Allow math and json
-                    "math": __import__("math"),
-                    "json": __import__("json"),
-                    "re": __import__("re"),
-                    "datetime": __import__("datetime"),
-                    "random": __import__("random"),
-                    "collections": __import__("collections"),
-                    "itertools": __import__("itertools"),
-                }, local_vars)
+                    local_vars,
+                )
         except Exception as e:
-            return stdout_capture.getvalue(), f"실행 오류: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+            return (
+                stdout_capture.getvalue(),
+                f"실행 오류: {type(e).__name__}: {e}\n{traceback.format_exc()}",
+            )
 
         return stdout_capture.getvalue(), stderr_capture.getvalue()
 
@@ -140,7 +176,7 @@ class CodeExecutorTool(BaseTool):
                 "description": {
                     "type": "string",
                     "description": "Brief description of what this code does",
-                }
+                },
             },
             "required": ["code"],
         }

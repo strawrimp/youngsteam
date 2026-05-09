@@ -1,6 +1,6 @@
 import React from 'react';
 import { useConversationStore } from '../store';
-import { getAgentConfig, getRoleColorClass, getIconColorClass } from '../agentConfig';
+import { getAgentConfig, getRoleColorClass, getIconColorClass, getRoleTailwindClass } from '../agentConfig';
 import { useTheme } from '../hooks/useTheme';
 
 interface SidebarProps {
@@ -62,29 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 : 'text-slate-500 hover:translate-x-1 hover:bg-slate-200/50';
             }
             
-            // Active state colors by role
-            switch (agent.role.toLowerCase()) {
-              case 'manager':
-                return isDark
-                  ? 'bg-slate-900/40 text-slate-300'
-                  : 'bg-slate-50 text-slate-700';
-              case 'developer':
-                return isDark 
-                  ? 'bg-emerald-900/40 text-emerald-300' 
-                  : 'bg-emerald-50 text-emerald-700';
-              case 'designer':
-                return isDark 
-                  ? 'bg-purple-900/40 text-purple-300' 
-                  : 'bg-purple-50 text-purple-700';
-              case 'researcher':
-                return isDark 
-                  ? 'bg-amber-900/40 text-amber-300' 
-                  : 'bg-amber-50 text-amber-700';
-              default:
-                return isDark 
-                  ? 'bg-slate-800 text-slate-200' 
-                  : 'bg-slate-100 text-slate-700';
-            }
+            return getRoleTailwindClass(agent.role.toLowerCase(), isDark);
           };
           
           return (
@@ -104,6 +82,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {config.icon}
                 </span>
                 <span className="text-lg">{config.display_name}</span>
+                {agent.id === 'openclaw-bot' && (
+                  <span
+                    className={`inline-block w-2 h-2 rounded-full ml-auto flex-shrink-0 ${
+                      agent.status === 'online' ? 'bg-emerald-500' : 'bg-slate-400'
+                    }`}
+                    title={agent.status === 'online' ? '온라인' : '오프라인'}
+                  />
+                )}
               </button>
               {isActive && config.description && (
                 <p className={`text-[11px] leading-relaxed mt-1 px-4 pb-2 ${

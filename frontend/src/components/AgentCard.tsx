@@ -13,6 +13,7 @@ const AGENT_COLORS: Record<string, string> = {
   developer: '#4A9B6F',
   designer: '#7C6BA8',
   researcher: '#D4A055',
+  bot: '#E85D3A',
 };
 
 const AGENT_EMOJIS: Record<string, string> = {
@@ -20,13 +21,15 @@ const AGENT_EMOJIS: Record<string, string> = {
   developer: '💻',
   designer: '🎨',
   researcher: '📚',
+  bot: '🤖',
 };
 
 const AGENT_LABELS: Record<string, string> = {
-  manager: '관리자 (CEO)',
-  developer: '개발자',
-  designer: '디자이너',
-  researcher: '연구원',
+  manager: '네오 비서실장',
+  developer: '아서 개발부장',
+  designer: '소피아 디자이너',
+  researcher: '루나 연구소장',
+  bot: '클로',
 };
 
 const AGENT_DESCRIPTIONS: Record<string, string> = {
@@ -34,6 +37,7 @@ const AGENT_DESCRIPTIONS: Record<string, string> = {
   developer: '아키텍처 설계 · 핵심 구현 · 코드 리뷰',
   designer: 'UX 설계 · 비주얼 디자인 · 브랜드 관리',
   researcher: '기술 분석 · 시장 조사 · 인사이트 도출',
+  bot: 'Mac Mini 게이트웨이 · 기기 제어 · 실세계 작업 위임',
 };
 
 export const AgentCard: React.FC<AgentCardProps> = ({ agent, response, isTyping }) => {

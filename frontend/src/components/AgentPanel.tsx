@@ -25,7 +25,7 @@ export const AgentPanel: React.FC = () => {
       {/* Header */}
       <div className="flex-shrink-0 border-b dark:border-slate-700 border-slate-200 px-lg py-md dark:bg-slate-800/70 bg-white">
         <h3 className="text-lg font-semibold dark:text-slate-100 text-slate-900">에이전트 팀</h3>
-        <p className="text-xs dark:text-slate-400 text-slate-600 mt-xs">4명의 전문가가 준비되었습니다</p>
+        <p className="text-xs dark:text-slate-400 text-slate-600 mt-xs">{agents.length}명의 팀원이 준비되었습니다</p>
       </div>
 
       {/* Agents list */}

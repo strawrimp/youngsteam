@@ -1,11 +1,13 @@
 import React from 'react';
 import { useTheme } from '../hooks/useTheme';
+import { useConversationStore } from '../store';
 
 interface HeaderProps {
   status?: 'syncing' | 'synced' | 'offline';
   activeTab?: 'dashboard' | 'archive' | 'settings';
   onTabChange?: (tab: 'dashboard' | 'archive' | 'settings') => void;
   onMenuClick?: () => void;
+  onNewConversation?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -13,28 +15,30 @@ const Header: React.FC<HeaderProps> = ({
   activeTab = 'dashboard',
   onTabChange,
   onMenuClick,
+  onNewConversation,
 }) => {
-  const { theme, toggleTheme, isDark } = useTheme();
+  useTheme(); // Keep import for theme initialization
+  const currentReferenceCode = useConversationStore((s) => s.currentReferenceCode);
 
   const statusConfig = {
     syncing: {
-      bg: isDark ? 'bg-emerald-900/30' : 'bg-emerald-50',
-      text: isDark ? 'text-emerald-400' : 'text-emerald-700',
-      border: isDark ? 'border-emerald-800' : 'border-emerald-100',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      border: 'border-emerald-100',
       label: '동기화 중',
       animate: true,
     },
     synced: {
-      bg: isDark ? 'bg-slate-900/30' : 'bg-slate-50',
-      text: isDark ? 'text-slate-400' : 'text-slate-700',
-      border: isDark ? 'border-slate-800' : 'border-slate-100',
+      bg: 'bg-slate-50',
+      text: 'text-slate-700',
+      border: 'border-slate-100',
       label: '동기화 완료',
       animate: false,
     },
     offline: {
-      bg: isDark ? 'bg-slate-800' : 'bg-slate-100',
-      text: isDark ? 'text-slate-400' : 'text-slate-600',
-      border: isDark ? 'border-slate-700' : 'border-slate-200',
+      bg: 'bg-slate-100',
+      text: 'text-slate-600',
+      border: 'border-slate-200',
       label: '오프라인',
       animate: false,
     },
@@ -46,23 +50,14 @@ const Header: React.FC<HeaderProps> = ({
     <header className={`
       flex justify-between items-center px-8 h-16 w-full 
       sticky top-0 z-50 border-b
-      ${isDark 
-        ? 'bg-slate-900 border-slate-800' 
-        : 'bg-white border-slate-100'
-      }
+      bg-white border-slate-100
     `}>
       {/* Left Side - Hamburger Menu (Mobile) & Status */}
       <div className="flex items-center gap-4">
         {/* Hamburger Menu - Mobile Only */}
         <button
           onClick={onMenuClick}
-          className={`
-            md:hidden p-2 rounded-lg transition-colors
-            ${isDark 
-              ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' 
-              : 'text-slate-600 hover:bg-slate-100 hover:text-primary'
-            }
-          `}
+          className="md:hidden p-2 rounded-lg transition-colors text-slate-600 hover:bg-slate-100 hover:text-primary"
           aria-label="메뉴 열기"
         >
           <span className="material-symbols-outlined">menu</span>
@@ -79,6 +74,18 @@ const Header: React.FC<HeaderProps> = ({
           />
           {currentStatus.label}
         </div>
+
+        {/* Reference Code Badge */}
+        {currentReferenceCode && (
+          <button
+            onClick={() => navigator.clipboard.writeText(currentReferenceCode)}
+            className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-mono font-bold border transition-colors bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+            title="클릭하여 참조 코드 복사"
+          >
+            <span className="material-symbols-outlined text-xs">tag</span>
+            {currentReferenceCode}
+          </button>
+        )}
       </div>
 
       {/* Right Side - Tabs & Actions */}
@@ -90,12 +97,8 @@ const Header: React.FC<HeaderProps> = ({
             className={`
               font-headline font-bold tracking-tight transition-all
               ${activeTab === 'dashboard'
-                ? isDark
-                  ? 'text-slate-400 border-b-2 border-slate-400 pb-1'
-                  : 'text-primary border-b-2 border-primary pb-1'
-                : isDark
-                  ? 'text-slate-400 hover:text-slate-200'
-                  : 'text-slate-500 hover:text-primary'
+                ? 'text-primary border-b-2 border-primary pb-1'
+                : 'text-slate-500 hover:text-primary'
               }
             `}
           >
@@ -106,12 +109,8 @@ const Header: React.FC<HeaderProps> = ({
             className={`
               font-headline font-bold tracking-tight transition-all
               ${activeTab === 'archive'
-                ? isDark
-                  ? 'text-slate-400 border-b-2 border-slate-400 pb-1'
-                  : 'text-primary border-b-2 border-primary pb-1'
-                : isDark
-                  ? 'text-slate-400 hover:text-slate-200'
-                  : 'text-slate-500 hover:text-primary'
+                ? 'text-primary border-b-2 border-primary pb-1'
+                : 'text-slate-500 hover:text-primary'
               }
             `}
           >
@@ -120,32 +119,21 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Action Icons */}
-        <div className={`flex items-center gap-4 border-l pl-4 ${
-          isDark ? 'border-slate-700' : 'border-slate-100'
-        }`}>
-          {/* Theme Toggle Button */}
-          <button
-            data-testid="theme-toggle"
-            onClick={toggleTheme}
-            className={`transition-colors ${
-              isDark 
-                ? 'text-slate-400 hover:text-yellow-400' 
-                : 'text-slate-400 hover:text-amber-500'
-            }`}
-            title={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
-          >
-              <span className="material-symbols-outlined">
-                {isDark ? 'light_mode' : 'dark_mode'}
-              </span>
+        <div className="flex items-center gap-4 border-l pl-4 border-slate-100">
+          {onNewConversation && (
+            <button
+              onClick={onNewConversation}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all
+                bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
+              title="새 대화 시작"
+            >
+              <span className="material-symbols-outlined text-sm">add_comment</span>
+              새 대화
             </button>
-
+          )}
           <button
             onClick={() => onTabChange?.('settings')}
-            className={`transition-colors ${
-              isDark
-                ? 'text-slate-400 hover:text-slate-200'
-                : 'text-slate-400 hover:text-primary'
-            }`}
+            className="transition-colors text-slate-400 hover:text-primary"
           >
             <span className="material-symbols-outlined">settings</span>
           </button>

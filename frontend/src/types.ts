@@ -1,8 +1,17 @@
 // API Response Types
+
+// Reply context for message threading
+export interface ReplyInfo {
+  id: string;
+  name: string;
+  content: string;    // 앞 30자 truncate
+  role: string;
+}
+
 export interface Agent {
   id: string;
   name: string;
-  role: 'manager' | 'developer' | 'designer' | 'researcher';
+  role: 'manager' | 'developer' | 'designer' | 'researcher' | 'bot';
   display_name?: string;
   emoji?: string;
   badge_text?: string;
@@ -20,11 +29,14 @@ export interface TeamSettings {
 export interface Message {
   id: string;
   conversationId: string;
-  senderType: 'user' | 'agent';
+  senderType: 'user' | 'agent' | 'system';
   agentName?: string;
+  agentRole?: string;
   content: string;
   timestamp: Date;
-  type?: 'text' | 'status' | 'error';
+  type?: 'text' | 'status' | 'error' | 'image';
+  replyTo?: ReplyInfo;
+  imageUrl?: string; // base64 data URL or server URL for images
 }
 
 // Debate Types
@@ -162,5 +174,102 @@ export interface VotingStatus {
   status: 'active' | 'completed' | 'no_votes' | 'not_found';
   total_votes: number;
   vote_breakdown: Record<string, number>;
+}
+
+// ==================== Agent Response Types ====================
+
+export interface AgentResponse {
+  agentId: string;
+  agentName: string;
+  agentRole: string;
+  content: string;
+  timestamp: Date;
+}
+
+// ==================== Agent Working State ====================
+
+export type AgentStepType = 'thinking' | 'tool_call' | 'tool_result' | 'response';
+
+export interface WorkingAgent {
+  id: string;
+  name: string;
+  role: string;
+  status: 'thinking' | 'working' | 'done';
+  stepType?: AgentStepType;
+  stepDetail?: string;   // 도구명 등 상세 정보
+  doneAt?: number;        // 완료 시간 (fadeout용)
+}
+
+// ==================== Archive Types ====================
+
+export interface ArchivedConversation {
+  id: string;
+  title: string;
+  started_at: string | null;
+  ended_at: string | null;
+  message_count: number;
+  tags?: string[];
+  category?: string;
+  summary?: string;
+  reference_code?: string;  // #C-YYMMDD-NNN
+}
+
+export interface ConversationDetail {
+  id: string;
+  title: string;
+  started_at: string | null;
+  ended_at: string | null;
+  messages: {
+    id: string;
+    agent_id: string | null;
+    agent_name: string | null;
+    content: string;
+    created_at: string | null;
+    sender_type: string;
+    type: string;
+  }[];
+}
+
+// ==================== Live Discussion Types ====================
+
+export interface DiscussionParticipant {
+  agent_id: string;
+  agent_name: string;
+  agent_role: string;
+}
+
+export interface DiscussionInfo {
+  discussion_id: string;
+  topic: string;
+  num_rounds: number;
+  current_round: number;
+  current_agent_index: number;
+  status: 'active' | 'completed' | 'error';
+  summary: string | null;
+  participants: DiscussionParticipant[];
+}
+
+export interface DiscussionMessage {
+  discussion_id: string;
+  agent_id: string;
+  agent_name: string;
+  agent_role: string;
+  content: string;
+  round: number;
+  message_index: number;
+}
+
+// ==================== Model Stats Types ====================
+
+export interface ModelStats {
+  status: string;
+  model_strategy: string;
+  stats: {
+    v4_calls: number;
+    r1_calls: number;
+    total_calls: number;
+    [key: string]: unknown;
+  };
+  description?: Record<string, string>;
 }
 

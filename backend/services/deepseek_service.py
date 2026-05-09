@@ -21,26 +21,26 @@ class DeepSeekService:
     BASE_URL = "https://api.deepseek.com/chat/completions"
 
     MODELS = {
-        "v4": "deepseek-chat",       # Fast, cost-effective for standard tasks
-        "r1": "deepseek-reasoner",   # Advanced reasoning for complex tasks
+        "v4": "deepseek-chat",  # Fast, cost-effective for standard tasks
+        "r1": "deepseek-reasoner",  # Advanced reasoning for complex tasks
     }
 
     # Task types that require R1 (complex reasoning)
     R1_REQUIRED_TASKS = {
-        "voting",           # Consensus decisions require careful reasoning
-        "strategy",         # Strategic planning needs R1
-        "analysis",         # Data analysis needs R1
-        "math",             # Mathematical reasoning
-        "reasoning",        # General complex reasoning
-        "decision",         # Final decisions
+        "voting",  # Consensus decisions require careful reasoning
+        "strategy",  # Strategic planning needs R1
+        "analysis",  # Data analysis needs R1
+        "math",  # Mathematical reasoning
+        "reasoning",  # General complex reasoning
+        "decision",  # Final decisions
     }
 
     # Task types recommended for R1 but can use V4
     R1_RECOMMENDED_TASKS = {
-        "architecture",     # Architecture decisions
-        "insight",          # Generating insights
-        "evaluation",       # Evaluating options
-        "code_review",      # Code review (if complex)
+        "architecture",  # Architecture decisions
+        "insight",  # Generating insights
+        "evaluation",  # Evaluating options
+        "code_review",  # Code review (if complex)
     }
 
     def __init__(
@@ -66,9 +66,7 @@ class DeepSeekService:
 
         # Validate model choice
         if self.primary_model not in self.MODELS:
-            logger.warning(
-                f"Invalid model '{self.primary_model}', using 'v4'"
-            )
+            logger.warning(f"Invalid model '{self.primary_model}', using 'v4'")
             self.primary_model = "v4"
 
     def _should_use_r1(
@@ -187,6 +185,7 @@ class DeepSeekService:
                 "messages": [{"role": "system", "content": system_prompt}] + messages,
                 "temperature": self.temperature,
                 "top_p": 0.95,
+                "max_tokens": 8192,
             }
 
             logger.debug(
@@ -194,7 +193,7 @@ class DeepSeekService:
                 f"(task_type={task_type}, complexity={complexity})"
             )
 
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
                     self.BASE_URL,
                     json=payload,
@@ -230,7 +229,7 @@ class DeepSeekService:
             if hasattr(e, "response"):
                 try:
                     logger.error(f"Response body: {e.response.text}")
-                except:
+                except Exception:
                     pass
             return f"[Error] DeepSeek API error: {str(e)}", "v4"
         except Exception as e:
@@ -303,7 +302,8 @@ class DeepSeekService:
             messages = [{"role": "system", "content": system_prompt}]
             if conversation_history:
                 messages.extend(conversation_history)
-            messages.append({"role": "user", "content": user_message})
+            if user_message:  # Only add user message if non-empty
+                messages.append({"role": "user", "content": user_message})
 
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
@@ -313,13 +313,15 @@ class DeepSeekService:
             payload = {
                 "model": model_name,
                 "messages": messages,
-                "temperature": self.temperature,
-                "top_p": 0.95,
+                "temperature": 0.4,  # Lower temp for more focused responses
+                "top_p": 0.9,
+                "frequency_penalty": 0.3,  # Reduce repetitive self-intro patterns
+                "max_tokens": 8192,
                 "tools": tools,
                 "tool_choice": "auto",
             }
 
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
                     self.BASE_URL,
                     json=payload,
@@ -329,7 +331,11 @@ class DeepSeekService:
                 data = response.json()
 
             if "choices" not in data or not data["choices"]:
-                return {"content": "[Error] No response", "tool_calls": [], "model_used": model_type}
+                return {
+                    "content": "[Error] No response",
+                    "tool_calls": [],
+                    "model_used": model_type,
+                }
 
             message = data["choices"][0]["message"]
             content = message.get("content") or ""
@@ -343,11 +349,13 @@ class DeepSeekService:
                         args = json.loads(tc["function"].get("arguments", "{}"))
                     except json.JSONDecodeError:
                         args = {}
-                    parsed_tool_calls.append({
-                        "id": tc.get("id", ""),
-                        "name": tc["function"]["name"],
-                        "arguments": args,
-                    })
+                    parsed_tool_calls.append(
+                        {
+                            "id": tc.get("id", ""),
+                            "name": tc["function"]["name"],
+                            "arguments": args,
+                        }
+                    )
 
             return {
                 "content": content,
@@ -361,4 +369,8 @@ class DeepSeekService:
             return {"content": "[Error] Timeout", "tool_calls": [], "model_used": "v4"}
         except Exception as e:
             logger.error(f"DeepSeek tool call error: {e}")
-            return {"content": f"[Error] {str(e)}", "tool_calls": [], "model_used": "v4"}
+            return {
+                "content": f"[Error] {str(e)}",
+                "tool_calls": [],
+                "model_used": "v4",
+            }

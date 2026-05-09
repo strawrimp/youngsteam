@@ -13,7 +13,7 @@ class DeveloperAgent(BaseAgent):
     def __init__(
         self,
         agent_id: str,
-        name: str = "Developer",
+        name: str = "Arthur",
         deepseek_service: DeepSeekService = None,
     ):
         """Initialize Developer agent.

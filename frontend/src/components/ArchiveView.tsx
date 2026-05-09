@@ -9,6 +9,7 @@ const ArchiveView: React.FC = () => {
     archiveConversations,
     selectedConversation,
     archiveLoading,
+    agents,
     setActiveTab,
     setArchiveConversations,
     setSelectedConversation,
@@ -91,6 +92,20 @@ const ArchiveView: React.FC = () => {
 
   const displayList = searchResults.length > 0 ? searchResults : archiveConversations;
 
+  // Map agent name to role for correct MessageBubble display
+  const getRoleForName = (agentName: string): string => {
+    if (!agentName || agentName === 'user' || agentName === 'system') return 'user';
+    const agent = agents.find(
+      (a) => a.name === agentName || a.display_name === agentName || a.agentName === agentName
+    );
+    return agent?.role || 'manager';
+  };
+
+  const getNameForMessage = (msg: any): string => {
+    if (msg.sender_type === 'user') return '나';
+    return msg.agent_name || msg.sender_name || '에이전트';
+  };
+
   return (
     <div className="flex h-full w-full">
       {/* Left Panel - Conversation List */}
@@ -116,7 +131,7 @@ const ArchiveView: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="대화 검색..."
               className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg
                      focus:outline-none focus:border-primary"
@@ -204,8 +219,8 @@ const ArchiveView: React.FC = () => {
               {selectedConversation.messages.map((msg, idx) => (
                 <MessageBubble
                   key={msg.id || idx}
-                  role={msg.sender_type === 'user' ? 'user' : 'manager'}
-                  name={msg.sender_type === 'user' ? '나' : '에이전트'}
+                  role={(msg.sender_type === 'user' ? 'user' : getRoleForName(msg.agent_name || '')) as any}
+                  name={getNameForMessage(msg)}
                   content={msg.content}
                   isUser={msg.sender_type === 'user'}
                 />

@@ -13,7 +13,7 @@ class ManagerAgent(BaseAgent):
     def __init__(
         self,
         agent_id: str,
-        name: str = "Manager",
+        name: str = "Neo",
         deepseek_service: DeepSeekService = None,
     ):
         """Initialize Manager agent.
@@ -209,3 +209,84 @@ CEO 관점에서 위 의견들을 종합하여 다음과 같이 응답하세요:
 
         self.add_to_history("assistant", response)
         return response
+
+    async def classify_conversation(self, messages: list) -> dict:
+        """대화 내용을 분석하여 주제, 태그, 요약을 자동 분류합니다.
+
+        Args:
+            messages: 대화 메시지 리스트 [{sender_type, content, agent_name?}, ...]
+
+        Returns:
+            {title: str, tags: list[str], summary: str, category: str}
+        """
+        # 메시지 텍스트 정리
+        msg_texts = []
+        for msg in messages[-20:]:  # 최근 20개 메시지
+            sender = msg.get("agent_name", msg.get("sender_type", "unknown"))
+            content = msg.get("content", "")[:150]
+            msg_texts.append(f"[{sender}] {content}")
+
+        conversation_text = "\n".join(msg_texts)
+
+        prompt = f"""다음 대화 내용을 분석하여 분류해주세요.
+
+대화 내용:
+{conversation_text}
+
+아래 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
+{{
+  "title": "대화 제목 (15자 이내, 핵심 주제)",
+  "tags": ["태그1", "태그2", "태그3"],
+  "summary": "대화 요약 (50자 이내)",
+  "category": "카테고리 (기획|개발|디자인|리서치|일반|토론|의사결정)"
+}}
+
+태그는 소문자로, 카테고리는 위 선택지 중 하나를 선택하세요."""
+
+        try:
+            response = await self.deepseek.call_model(
+                system_prompt=self.system_prompt,
+                user_message=prompt,
+                conversation_history=[],
+                task_type="default",
+                complexity=0.5,
+            )
+
+            # JSON 추출 시도
+            import json
+            import re
+
+            # ```json ... ``` 블록에서 추출
+            json_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", response)
+            if json_match:
+                result = json.loads(json_match.group(1).strip())
+            else:
+                # 직접 JSON 파싱 시도
+                json_start = response.find("{")
+                json_end = response.rfind("}") + 1
+                if json_start >= 0 and json_end > json_start:
+                    result = json.loads(response[json_start:json_end])
+                else:
+                    result = {
+                        "title": "대화",
+                        "tags": ["일반"],
+                        "summary": response[:50],
+                        "category": "일반",
+                    }
+
+            # 필드 검증
+            return {
+                "title": result.get("title", "제목 없는 대화")[:50],
+                "tags": result.get("tags", ["일반"])[:5],
+                "summary": result.get("summary", "")[:100],
+                "category": result.get("category", "일반"),
+            }
+
+        except Exception as e:
+            logger.error(f"Conversation classification error: {e}")
+            return {
+                "title": "대화",
+                "tags": ["일반"],
+                "summary": "",
+                "category": "일반",
+            }

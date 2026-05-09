@@ -21,7 +21,7 @@ def server_available():
     try:
         response = requests.get(f"{BASE_URL}/health", timeout=2)
         return response.status_code == 200
-    except:
+    except Exception:
         pytest.skip("Backend server not running at localhost:8000")
 
 

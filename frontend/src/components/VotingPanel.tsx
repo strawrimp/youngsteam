@@ -3,6 +3,7 @@ import { useConversationStore } from '../store';
 import { api } from '../api';
 import { DebateResult } from '../types';
 import { useTheme } from '../hooks/useTheme';
+import { getAgentConfig, getRoleTailwindClass } from '../agentConfig';
 
 interface VotingPanelProps {
   consensusPercentage?: number;
@@ -63,19 +64,11 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
     }
   };
 
-  // Color map for debate messages
+  // Color map for debate messages — single source: agentConfig
   const getAgentColor = (agentName: string): string => {
     const agent = agents.find(a => a.name === agentName || a.display_name === agentName);
-    if (agent?.color) return agent.color;
-    
-    const colorMap: Record<string, string> = {
-      manager: '#4E7EBE',
-      developer: '#4A9B6F',
-      designer: '#7C6BA8',
-      researcher: '#D4A055',
-    };
-    const role = agents.find(a => a.name === agentName)?.role;
-    return colorMap[role || ''] || '#6B7280';
+    if (agent) return getAgentConfig(agent.id, agents).color;
+    return '#6B7280';
   };
 
   return (
@@ -189,13 +182,7 @@ const VotingPanel: React.FC<VotingPanelProps> = ({
                 <div className="space-y-2">
                   {Object.entries(agentResponses).map(([agentId, response]) => {
                     const agent = agents.find(a => a.id === agentId);
-                    const colorMap: Record<string, string> = {
-                      manager: isDark ? 'bg-slate-900/30 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-700',
-                      developer: isDark ? 'bg-emerald-900/30 border-emerald-800 text-emerald-300' : 'bg-emerald-50 border-emerald-100 text-emerald-700',
-                      designer: isDark ? 'bg-purple-900/30 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-100 text-purple-700',
-                      researcher: isDark ? 'bg-amber-900/30 border-amber-800 text-amber-300' : 'bg-amber-50 border-amber-100 text-amber-700',
-                    };
-                    const colorClass = colorMap[agent?.role || ''] || (isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-700');
+                    const colorClass = getRoleTailwindClass(agent?.role || '', isDark);
                     return (
                       <div key={agentId} className={`p-3 rounded-lg border ${colorClass}`}>
                         <p className="text-[10px] font-bold uppercase tracking-wider mb-1">

@@ -23,6 +23,7 @@ class BaseAgent(ABC):
         self.name = name
         self.role = role
         self.system_prompt = system_prompt
+        self.use_deepseek_tool_use = True  # True = AgentTaskExecutor(Tool Use) 사용
         self.conversation_history: List[Dict] = []
 
     async def think(self, context: str) -> str:

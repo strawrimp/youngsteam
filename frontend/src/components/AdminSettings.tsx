@@ -115,10 +115,10 @@ const AdminSettings: React.FC = () => {
   
   const getRoleLabel = (role: string): string => {
     const labels: Record<string, string> = {
-      manager: '관리자',
-      developer: '개발자',
-      designer: '디자이너',
-      researcher: '연구원',
+      manager: '네오 비서실장',
+      developer: '아서 개발부장',
+      designer: '소피아 디자이너',
+      researcher: '루나 연구소장',
     };
     return labels[role] || role;
   };

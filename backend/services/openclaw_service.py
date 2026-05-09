@@ -11,6 +11,8 @@ Architecture:
 Reference: OpenClaw Gateway Protocol Documentation
 """
 
+import asyncio
+import json
 import logging
 from typing import Any, Dict, Optional
 
@@ -72,7 +74,7 @@ class OpenClawService:
         )
 
         # Requested scopes
-        requested_scopes_str = getattr(settings, 'openclaw_requested_scopes', 'operator.read,operator.write')
+        requested_scopes_str = getattr(settings, 'openclaw_requested_scopes', 'operator.admin,operator.read,operator.write,operator.approvals,operator.pairing')
         self.requested_scopes = [s.strip() for s in requested_scopes_str.split(',')]
 
         logger.info(
@@ -108,56 +110,244 @@ class OpenClawService:
     async def health_check(self) -> bool:
         """Check if OpenClaw Gateway is reachable and authenticated.
 
-        Performs a full connection check:
-        1. TCP/WS connection
-        2. connect.challenge received
-        3. connect request sent
-        4. hello-ok received
+        Tries multiple methods:
+        1. WebSocket connection (full auth)
+        2. HTTP health endpoint (basic connectivity)
 
         Returns:
-            True if gateway is fully accessible and authenticated
+            True if gateway is accessible (authenticated via WS or reachable via HTTP)
         """
         if not self.base_url:
             logger.warning("[OpenClawService] BASE_URL not configured")
             return False
 
-        try:
-            client = self._get_ws_client()
+        # Try WebSocket first if enabled
+        if self.ws_enabled:
+            try:
+                client = self._get_ws_client()
 
-            # Already connected and authenticated?
-            if client.is_authenticated:
-                logger.info("[OpenClawService] ✅ Already authenticated")
-                return True
+                # Already connected and authenticated?
+                if client.is_authenticated:
+                    logger.info("[OpenClawService] ✅ WebSocket authenticated")
+                    return True
 
-            # Try to connect
-            await client.connect()
-            return client.is_authenticated
+                # Try to connect
+                await client.connect()
+                if client.is_authenticated:
+                    logger.info("[OpenClawService] ✅ WebSocket authenticated")
+                    return True
 
-        except Exception as e:
-            logger.error(f"[OpenClawService] ❌ Health check failed: {e}")
-            return False
+            except Exception as e:
+                logger.debug(
+                    f"[OpenClawService] WebSocket health check failed: {e}, "
+                    f"trying HTTP fallback"
+                )
+
+        # Try HTTP health endpoints as fallback
+        import httpx
+
+        for endpoint in [f"{self.base_url.rstrip('/')}/health",
+                        f"{self.base_url.rstrip('/')}/v1/models"]:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get(endpoint)
+                    if response.status_code in (200, 404):  # 404 ok, means gateway exists
+                        logger.info(f"[OpenClawService] ✅ HTTP reachable: {endpoint}")
+                        return True
+            except Exception:
+                pass
+
+        logger.error(f"[OpenClawService] ❌ Gateway unreachable at {self.base_url}")
+        return False
 
     async def is_available(self) -> bool:
         """Quick availability check without full handshake.
 
+        Tries WebSocket first, then HTTP.
+
         Returns:
-            True if we can establish a connection (auth may still fail)
+            True if gateway is reachable (may not be authenticated)
         """
         if not self.base_url:
             return False
 
-        try:
-            client = self._get_ws_client()
-            if client.is_connected:
-                return True
+        # Try WebSocket first
+        if self.ws_enabled:
+            try:
+                client = self._get_ws_client()
+                if client.is_connected:
+                    return True
 
-            # Quick connect attempt with short timeout
-            ws_url = self.base_url.replace("http://", "ws://").replace("https://", "wss://")
-            import websockets
-            async with websockets.connect(ws_url, open_timeout=5.0) as ws:
+                # Quick connect attempt with short timeout
+                ws_url = self.base_url.replace("http://", "ws://").replace("https://", "wss://")
+                import websockets
+                async with websockets.connect(ws_url, open_timeout=5.0) as ws:
+                    logger.debug("[OpenClawService] WebSocket available")
+                    return True
+            except Exception as e:
+                logger.debug(f"[OpenClawService] WebSocket not available: {e}")
+
+        # Try HTTP as fallback
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{self.base_url.rstrip('/')}/")
+                logger.debug(f"[OpenClawService] HTTP available (status {response.status_code})")
                 return True
         except Exception:
+            logger.debug("[OpenClawService] HTTP not available")
             return False
+
+    def _build_payload(
+        self,
+        instruction: str,
+        context: Optional[Dict[str, Any]] = None,
+        agent_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Build LLM payload for instruction execution.
+
+        Args:
+            instruction: Natural language instruction
+            context: Optional execution context
+            agent_name: Optional delegating agent name
+
+        Returns:
+            Dict ready for LLM API (HTTP or WebSocket)
+        """
+        system_prompt = f"""You are an intelligent agent tasked with executing instructions.
+Your role is to:
+1. Understand the given instruction
+2. Determine what actions need to be taken
+3. Execute those actions
+4. Report the results
+
+You have access to various tools and capabilities.
+Always be clear about what you're doing and the outcomes.
+"""
+
+        if context:
+            system_prompt += f"\n\nExecution context:\n{json.dumps(context, indent=2)}"
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": instruction},
+        ]
+
+        payload = {
+            "model": "gpt-4",  # OpenClaw understands this
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 2000,
+        }
+
+        if agent_name:
+            payload["metadata"] = {"agent": agent_name}
+
+        return payload
+
+    async def _execute_via_ws(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute instruction via WebSocket.
+
+        Args:
+            payload: LLM payload prepared by _build_payload()
+
+        Returns:
+            Dict with success, output, actions_taken, error
+        """
+        try:
+            client = self._get_ws_client()
+
+            # Ensure we're connected and authenticated
+            if not client.is_authenticated:
+                await client.connect()
+
+            # Extract instruction from payload for the client
+            messages = payload.get("messages", [])
+            instruction = ""
+            for msg in messages:
+                if msg.get("role") == "user":
+                    instruction = msg.get("content", "")
+                    break
+
+            # Execute via WebSocket
+            result = await client.execute_instruction(instruction, None)
+            return result.to_dict()
+
+        except Exception as e:
+            logger.warning(f"[OpenClawService] WebSocket execution failed: {e}")
+            raise
+
+    async def _execute_via_http(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute instruction via HTTP REST API (fallback).
+
+        Args:
+            payload: LLM payload prepared by _build_payload()
+
+        Returns:
+            Dict with success, output, actions_taken, error
+        """
+        import httpx
+
+        try:
+            # Determine endpoint (prefer /v1/chat/completions)
+            endpoint = f"{self.base_url.rstrip('/')}/v1/chat/completions"
+
+            headers = self._get_headers()
+            headers["Content-Type"] = "application/json"
+
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                logger.info(f"[OpenClawService] HTTP POST {endpoint}")
+                response = await client.post(endpoint, json=payload, headers=headers)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    # Parse OpenAI-format response
+                    if "choices" in data and data["choices"]:
+                        choice = data["choices"][0]
+                        if "message" in choice:
+                            output = choice["message"].get("content", "")
+                            return {
+                                "success": True,
+                                "output": output,
+                                "actions_taken": [],
+                                "error": None,
+                            }
+
+                    return {
+                        "success": True,
+                        "output": str(data),
+                        "actions_taken": [],
+                        "error": None,
+                    }
+
+                elif response.status_code == 401:
+                    raise PermissionError(
+                        f"HTTP 401: Unauthorized. Check OPENCLAW_API_KEY. "
+                        f"(Known issue: operator.write scope may be missing from external networks)"
+                    )
+
+                elif response.status_code == 403:
+                    raise PermissionError(
+                        f"HTTP 403: Forbidden. Insufficient scopes. "
+                        f"Expected: operator.read, operator.write"
+                    )
+
+                else:
+                    error_text = response.text[:500]
+                    logger.error(
+                        f"[OpenClawService] HTTP {response.status_code}: {error_text}"
+                    )
+                    raise RuntimeError(
+                        f"HTTP {response.status_code}: {error_text}"
+                    )
+
+        except httpx.ConnectError as e:
+            logger.warning(f"[OpenClawService] HTTP connection failed: {e}")
+            raise
+
+        except Exception as e:
+            logger.error(f"[OpenClawService] HTTP execution failed: {e}")
+            raise
 
     async def execute_instruction(
         self,
@@ -168,6 +358,11 @@ class OpenClawService:
         """Execute a natural language instruction via OpenClaw.
 
         This is the main entry point for delegating tasks to OpenClaw.
+
+        Strategy:
+        1. Try WebSocket first (cleaner protocol, avoids OAuth scope issues)
+        2. If WebSocket fails, fall back to HTTP REST API
+        3. If both fail, return error with diagnostics
 
         Args:
             instruction: Natural language instruction (e.g., "Send email to Bob")
@@ -189,28 +384,48 @@ class OpenClawService:
                 "error": "OpenClaw BASE_URL not configured. Set OPENCLAW_BASE_URL in .env",
             }
 
-        if not self.ws_enabled:
+        payload = self._build_payload(instruction, context, agent_name)
+
+        # Try WebSocket first (if enabled)
+        if self.ws_enabled:
+            try:
+                logger.info("[OpenClawService] Attempting WebSocket execution")
+                return await self._execute_via_ws(payload)
+
+            except asyncio.TimeoutError:
+                logger.warning(
+                    "[OpenClawService] WebSocket timeout, falling back to HTTP"
+                )
+
+            except Exception as e:
+                logger.warning(
+                    f"[OpenClawService] WebSocket failed ({e}), falling back to HTTP"
+                )
+
+        # Fall back to HTTP
+        try:
+            logger.info("[OpenClawService] Attempting HTTP execution")
+            return await self._execute_via_http(payload)
+
+        except PermissionError as e:
             return {
                 "success": False,
                 "output": "",
                 "actions_taken": [],
-                "error": "OpenClaw WebSocket is disabled (OPENCLAW_WS_ENABLED=false)",
+                "error": str(e),
             }
 
-        try:
-            client = self._get_ws_client()
-
-            # Ensure we're connected
-            if not client.is_authenticated:
-                await client.connect()
-
-            # Execute via WebSocket
-            result = await client.execute_instruction(instruction, context)
-
-            return result.to_dict()
+        except ConnectionError as e:
+            return {
+                "success": False,
+                "output": "",
+                "actions_taken": [],
+                "error": f"Cannot connect to OpenClaw Gateway at {self.base_url}. "
+                         f"Verify OPENCLAW_BASE_URL and gateway is running.",
+            }
 
         except Exception as e:
-            logger.error(f"[OpenClawService] Execute failed: {e}")
+            logger.error(f"[OpenClawService] All execution methods failed: {e}")
             return {
                 "success": False,
                 "output": "",
